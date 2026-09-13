@@ -1,0 +1,58 @@
+package.json
+  s_5caa0b905c4318::t_cf3d98c559e870 27-30
+  s_5caa0b905c4318::t_c3e74525ab9ce2 37
+  s_5caa0b905c4318::t_518bb3bb06c6a3 24-26
+  s_5caa0b905c4318::t_190354032cba19 31-36
+  s_5caa0b905c4318::t_9f2861b7abe27d 38-40
+oxfmt.config.ts
+  s_5caa0b905c4318::t_dfb4ac84194e57 1-5,8
+  s_5caa0b905c4318::t_b5c91768f8eabe 6-7
+README.md
+  s_5caa0b905c4318::t_eb12a1bcf560e0 27-52
+  s_5caa0b905c4318::t_1eac40a548fa6a 54-85,91
+  s_5caa0b905c4318::t_4d8d8ecd1a299a 9-25
+  s_5caa0b905c4318::t_f32fc82390ce69 6-8
+  s_5caa0b905c4318::t_16fe7ab68f62a2 26
+  s_5caa0b905c4318::t_c26d35578ed0ff 53
+  s_5caa0b905c4318::t_14040ce79d4ba7 86-90
+src/oxfmt.ts
+  s_5caa0b905c4318::t_b5c91768f8eabe 2-4
+  s_5caa0b905c4318::t_6755d8f9d7ca2a 1,5-7
+AGENTS.md
+  s_5caa0b905c4318::t_27f183611b829f 27-32
+  s_5caa0b905c4318::t_a4fc20dffebd27 22
+  s_5caa0b905c4318::t_1ac956fbf5bd63 18-21,23-26
+  s_3929ccbb657931::t_ae5dec520cf21b 1-17,33-34
+scripts/generate-json-config.ts
+  s_5caa0b905c4318::t_137f7b2fb84f72 1-9
+CLAUDE.md
+  s_5caa0b905c4318::t_bf703fd351e044 1
+pnpm-lock.yaml
+  s_5caa0b905c4318::t_a53c2047acabd6 1-983
+src/index.ts
+  s_5caa0b905c4318::t_fcf12fde4b14ed 1-11
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "9c1b2d07978365478582aafe067e5d4acd45c9e9",
+  "prompts": {},
+  "sessions": {
+    "s_3929ccbb657931": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a09b2f-b3fe-74f3-beeb-c20b8cd4697f",
+        "model": "gpt-5.6-terra"
+      },
+      "human_author": "Kamaal Farah <kamaal.f1@gmail.com>"
+    },
+    "s_5caa0b905c4318": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "50f7de4f-0b3b-4996-9dc7-9d2de14a3c5f",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "Kamaal Farah <kamaal.f1@gmail.com>"
+    }
+  }
+}
