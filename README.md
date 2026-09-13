@@ -3,8 +3,9 @@
 Kamaal Farah's shared [oxlint](https://oxc.rs) quality config.
 
 Currently enables every rule from [`@kamaal111/oxlint-plugin-anti-slop`](https://github.com/kamaal111/anti-slop),
-Kamaal's fork of [`dmmulroy/anti-slop`](https://github.com/dmmulroy/anti-slop). More rule sources
-will be folded in over time.
+Kamaal's fork of [`dmmulroy/anti-slop`](https://github.com/dmmulroy/anti-slop), plus a curated set of
+rules from oxlint's built-in `typescript`, `unicorn`, and `oxc` plugins and from `eslint-plugin-import`
+(via oxlint's `jsPlugins`). More rule sources will be folded in over time.
 
 ## Table of contents
 
