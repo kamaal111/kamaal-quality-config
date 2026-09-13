@@ -1,0 +1,28 @@
+package.json
+  s_0794fcff40f124::t_62040f53f63982 48-49
+README.md
+  s_0794fcff40f124::t_916c0e045dca63 6-8
+.oxlintrc.json
+  s_0794fcff40f124::t_7244d1ba78eb35 15-23
+  s_0794fcff40f124::t_8fb93b3644ce5a 2-6
+src/index.ts
+  s_0794fcff40f124::t_f8d9338cd714c5 9-34
+pnpm-lock.yaml
+  s_0794fcff40f124::t_313e75ef21b3b7 172-174,203-260,546-557,681-1030,1036-1181,1187-1249,1280-1302,1307-1391,1396-1423,1432-1454,1460-1463,1467-1494,1500-1503,1506-1567,1708-1718,1780-2260,2263-2414,2423-2503,2560-2577,2580-2698,2701-2734,2739-2782,2806-2812,2815-2865,2868-2869
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "3a9c026cef0d0d9eaefc89b703bbe104ef54bfef",
+  "prompts": {},
+  "sessions": {
+    "s_0794fcff40f124": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3ec144ea-949a-4376-b293-bc39f4052380",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "Kamaal Farah <kamaal.f1@gmail.com>"
+    }
+  }
+}
