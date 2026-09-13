@@ -1,6 +1,9 @@
 {
-  "plugins": ["typescript"],
-  "jsPlugins": [{ "name": "anti-slop", "specifier": "@kamaal111/oxlint-plugin-anti-slop" }],
+  "plugins": ["typescript", "unicorn", "oxc"],
+  "jsPlugins": [
+    { "name": "anti-slop", "specifier": "@kamaal111/oxlint-plugin-anti-slop" },
+    { "name": "import-js", "specifier": "eslint-plugin-import" }
+  ],
   "options": { "typeAware": true },
   "categories": { "correctness": "error" },
   "rules": {
@@ -9,6 +12,15 @@
     "typescript/consistent-type-imports": "error",
     "typescript/no-non-null-assertion": "error",
     "typescript/consistent-type-assertions": ["error", { "assertionStyle": "never" }],
+    "oxc/no-accumulating-spread": "error",
+    "import-js/order": [
+      "error",
+      {
+        "groups": ["builtin", "external", ["internal", "parent", "sibling", "index"]],
+        "newlines-between": "always",
+        "alphabetize": { "order": "asc", "caseInsensitive": true }
+      }
+    ],
     "anti-slop/no-chained-type-assertions": "error",
     "anti-slop/no-conditional-empty-object-spread": "error",
     "anti-slop/no-known-value-widening": "error",

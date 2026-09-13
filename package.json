@@ -45,7 +45,8 @@
     "prepare": "husky"
   },
   "dependencies": {
-    "@kamaal111/oxlint-plugin-anti-slop": "^0.0.4"
+    "@kamaal111/oxlint-plugin-anti-slop": "^0.0.4",
+    "eslint-plugin-import": "^2.32.0"
   },
   "devDependencies": {
     "@oxlint/plugins": "^1.82.0",
