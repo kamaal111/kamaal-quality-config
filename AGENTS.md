@@ -32,3 +32,7 @@ Use `pnpm` 12.4.1 (installed with pnpm's standalone script) on Node.js 26.
   section in sync with `src/oxfmt.ts`'s exported shape.
 - More rule sources (plugins/config blocks) will be added over time; keep each one additive and
   keep deriving rule lists from the source plugin rather than hand-copying rule names, where possible.
+- The repo lints itself via `oxlint.config.ts` at the root, which imports `./src/index.ts` directly
+  (with the explicit `.ts` extension — oxlint's config loader can't resolve extensionless relative
+  imports) and extends it. This runs against the uncompiled source, so there's no need to build
+  `dist/` first and no separate hand-maintained `.oxlintrc.json` to keep in sync with `src/index.ts`.
