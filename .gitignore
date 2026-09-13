@@ -5,3 +5,5 @@ dist/
 *.log
 .pnpm-store
 .env
+.claude/worktrees
+.agents/worktrees
