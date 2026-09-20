@@ -1,6 +1,6 @@
 # @kamaal111/kamaal-quality-config
 
-Kamaal Farah's shared [oxlint](https://oxc.rs) quality config.
+Kamaal Farah's shared [oxlint](https://oxc.rs) quality configs.
 
 Currently enables every rule from [`@kamaal111/oxlint-plugin-anti-slop`](https://github.com/kamaal111/anti-slop),
 Kamaal's fork of [`dmmulroy/anti-slop`](https://github.com/dmmulroy/anti-slop), plus a curated set of
@@ -37,20 +37,30 @@ Extend it from your `.oxlintrc.json`:
 The package ships a plain, statically-generated `dist/oxlintrc.json` — no `oxlint.config.ts` or
 package-import support is needed, since `.oxlintrc.json`'s `extends` field accepts plain file paths.
 
-Alternatively, if your project already uses `oxlint.config.ts`, you can import the same config as a
-JS object instead:
+Alternatively, if your project already uses `oxlint.config.ts`, import the config directly:
 
 ```ts
-import kamaalQualityConfig from '@kamaal111/kamaal-quality-config';
+import kamaalOxlintConfig from '@kamaal111/kamaal-quality-config/oxlint';
 import { defineConfig } from 'oxlint';
 
 export default defineConfig({
-  extends: [kamaalQualityConfig],
+  extends: [kamaalOxlintConfig],
 });
 ```
 
-Both forms carry the same rules — `dist/oxlintrc.json` is generated from the same config object at
-build time.
+The package root also exposes every config through a namespace object:
+
+```ts
+import kamaalQuality from '@kamaal111/kamaal-quality-config';
+import { defineConfig } from 'oxlint';
+
+export default defineConfig({
+  extends: [kamaalQuality.oxlint],
+});
+```
+
+Both forms carry the same rules — `dist/oxlintrc.json` is generated from the oxlint config at build
+time.
 
 ### oxfmt
 
@@ -68,6 +78,8 @@ export default defineConfig({
   ignorePatterns: ['dist', 'pnpm-lock.yaml' /* ...your project's own paths */],
 });
 ```
+
+The same style is also available as `kamaalQuality.oxfmt` from the package-root namespace.
 
 `./oxfmt` exports a plain style object (`printWidth`, `arrowParens`, `singleQuote`) with no
 `ignorePatterns` — those are inherently project-specific, so each consumer supplies its own via the
