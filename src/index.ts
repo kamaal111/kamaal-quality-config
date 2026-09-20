@@ -6,7 +6,7 @@ const antiSlopRules = Object.fromEntries(
 );
 
 export default defineConfig({
-  plugins: ['typescript', 'unicorn', 'oxc'],
+  plugins: ['typescript', 'unicorn', 'oxc', 'vitest'],
   jsPlugins: [
     { name: 'anti-slop', specifier: '@kamaal111/oxlint-plugin-anti-slop' },
     { name: 'import-js', specifier: 'eslint-plugin-import' },
@@ -55,7 +55,10 @@ export default defineConfig({
     'typescript/prefer-for-of': 'error',
     'typescript/prefer-function-type': 'error',
     'oxc/no-accumulating-spread': 'error',
+    'vitest/no-conditional-expect': 'error',
+    'vitest/expect-expect': 'error',
     'anti-slop/no-runtime-typeof': ['error', { allowInTypeGuards: true }],
+    'unicorn/no-abusive-eslint-disable': 'error',
     'import-js/order': [
       'error',
       {
