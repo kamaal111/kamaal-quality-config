@@ -1,8 +1,8 @@
 import { defineConfig } from 'oxlint';
 
-import kamaalQualityConfig from './src/index.ts';
+import kamaalQuality from './src/index.ts';
 
 export default defineConfig({
-  extends: [kamaalQualityConfig],
+  extends: [kamaalQuality.oxlint],
   ignorePatterns: ['.pnpm-store/**', 'dist/**/*'],
 });

@@ -25,6 +25,10 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
+    "./oxlint": {
+      "types": "./dist/oxlint.d.ts",
+      "default": "./dist/oxlint.js"
+    },
     "./oxfmt": {
       "types": "./dist/oxfmt.d.ts",
       "default": "./dist/oxfmt.js"
@@ -41,6 +45,7 @@
     "format:check": "oxfmt --check",
     "type-check": "tsc --noEmit",
     "quality": "pnpm run lint && pnpm run format:check && pnpm run type-check",
+    "test": "pnpm run build && tsc -p tsconfig.tests.json && vitest run",
     "release": "node ./scripts/publish.ts",
     "prepare": "husky"
   },
@@ -56,7 +61,8 @@
     "oxfmt": "^0.67.0",
     "oxlint": "^1.82.0",
     "oxlint-tsgolint": "^7.0.2001",
-    "typescript": "^7.0.2"
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.1"
   },
   "lint-staged": {
     "*.{js,mjs,cjs,ts}": "pnpm run lint",

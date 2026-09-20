@@ -43,3 +43,31 @@ jobs:
 
       - name: Build
         run: pnpm clean:build
+
+  test:
+    name: Test
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Read pnpm version
+        id: pnpm-version
+        run: echo "version=$(jq -r '.devEngines.packageManager.version' package.json)" >> "$GITHUB_OUTPUT"
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v5
+        with:
+          version: ${{ steps.pnpm-version.outputs.version }}
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Bootstrap
+        run: pnpm install --frozen-lockfile
+
+      - name: Test
+        run: pnpm test
