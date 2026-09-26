@@ -1,8 +1,23 @@
 import antiSlopPlugin from '@kamaal111/oxlint-plugin-anti-slop';
 import { defineConfig } from 'oxlint';
 
-const antiSlopRules = Object.fromEntries(
-  Object.keys(antiSlopPlugin.rules).map(ruleName => [`anti-slop/${ruleName}`, 'error'] as const),
+import consistentInlineTypeImportsPlugin from './plugins/consistent-inline-type-imports.ts';
+import noNullishCheckFirstTernaryPlugin from './plugins/no-nullish-check-first-ternary.ts';
+
+function pluginRules(namespace: string, ruleNames: string[]) {
+  return Object.fromEntries(ruleNames.map(ruleName => [`${namespace}/${ruleName}`, 'error'] as const));
+}
+
+const antiSlopRules = pluginRules('anti-slop', Object.keys(antiSlopPlugin.rules));
+
+const consistentInlineTypeImportsRules = pluginRules(
+  consistentInlineTypeImportsPlugin.meta.name,
+  Object.keys(consistentInlineTypeImportsPlugin.rules),
+);
+
+const noNullishCheckFirstTernaryRules = pluginRules(
+  noNullishCheckFirstTernaryPlugin.meta.name,
+  Object.keys(noNullishCheckFirstTernaryPlugin.rules),
 );
 
 export default defineConfig({
@@ -10,11 +25,21 @@ export default defineConfig({
   jsPlugins: [
     { name: 'anti-slop', specifier: '@kamaal111/oxlint-plugin-anti-slop' },
     { name: 'import-js', specifier: 'eslint-plugin-import' },
+    {
+      name: consistentInlineTypeImportsPlugin.meta.name,
+      specifier: '@kamaal111/kamaal-quality-config/plugins/consistent-inline-type-imports',
+    },
+    {
+      name: noNullishCheckFirstTernaryPlugin.meta.name,
+      specifier: '@kamaal111/kamaal-quality-config/plugins/no-nullish-check-first-ternary',
+    },
   ],
   options: { typeAware: true },
   categories: { correctness: 'error' },
   rules: {
     ...antiSlopRules,
+    ...consistentInlineTypeImportsRules,
+    ...noNullishCheckFirstTernaryRules,
     curly: 'error',
     'typescript/no-deprecated': 'error',
     'typescript/consistent-type-imports': 'error',
