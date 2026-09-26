@@ -5,7 +5,15 @@ Kamaal Farah's shared [oxlint](https://oxc.rs) quality configs.
 Currently enables every rule from [`@kamaal111/oxlint-plugin-anti-slop`](https://github.com/kamaal111/anti-slop),
 Kamaal's fork of [`dmmulroy/anti-slop`](https://github.com/dmmulroy/anti-slop), plus a curated set of
 rules from oxlint's built-in `typescript`, `unicorn`, `oxc`, and `vitest` plugins and from
-`eslint-plugin-import` (via oxlint's `jsPlugins`). More rule sources will be folded in over time.
+`eslint-plugin-import` (via oxlint's `jsPlugins`), plus two hand-written local rules:
+
+- `kamaal-imports/no-all-inline-type-imports` — forbids `import { type A, type B } from 'x'` in favor
+  of a top-level `import type { A, B } from 'x'`.
+- `kamaal-ternary/no-nullish-check-first-ternary` — forbids ternaries that check for a nullish value
+  first (e.g. `x == null ? undefined : x.trim()`), requiring the value-producing branch first instead
+  (`x != null ? x.trim() : undefined`).
+
+More rule sources will be folded in over time.
 
 ## Table of contents
 
