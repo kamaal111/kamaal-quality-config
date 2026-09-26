@@ -15,7 +15,9 @@
     "url": "git+https://github.com/kamaal111/kamaal-quality-config.git"
   },
   "files": [
-    "dist"
+    "dist",
+    "src/plugins/consistent-inline-type-imports.ts",
+    "src/plugins/no-nullish-check-first-ternary.ts"
   ],
   "type": "module",
   "main": "./dist/index.js",
@@ -32,7 +34,9 @@
     "./oxfmt": {
       "types": "./dist/oxfmt.d.ts",
       "default": "./dist/oxfmt.js"
-    }
+    },
+    "./plugins/consistent-inline-type-imports": "./src/plugins/consistent-inline-type-imports.ts",
+    "./plugins/no-nullish-check-first-ternary": "./src/plugins/no-nullish-check-first-ternary.ts"
   },
   "publishConfig": {
     "access": "public"
