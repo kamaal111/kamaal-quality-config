@@ -15,9 +15,7 @@
     "url": "git+https://github.com/kamaal111/kamaal-quality-config.git"
   },
   "files": [
-    "dist",
-    "src/plugins/consistent-inline-type-imports.ts",
-    "src/plugins/no-nullish-check-first-ternary.ts"
+    "dist"
   ],
   "type": "module",
   "main": "./dist/index.js",
@@ -35,8 +33,8 @@
       "types": "./dist/oxfmt.d.ts",
       "default": "./dist/oxfmt.js"
     },
-    "./plugins/consistent-inline-type-imports": "./src/plugins/consistent-inline-type-imports.ts",
-    "./plugins/no-nullish-check-first-ternary": "./src/plugins/no-nullish-check-first-ternary.ts"
+    "./plugins/consistent-inline-type-imports": "./dist/plugins/consistent-inline-type-imports.js",
+    "./plugins/no-nullish-check-first-ternary": "./dist/plugins/no-nullish-check-first-ternary.js"
   },
   "publishConfig": {
     "access": "public"
@@ -44,7 +42,7 @@
   "scripts": {
     "build": "rm -rf dist && tsc -p tsconfig.build.json && node scripts/generate-json-config.ts",
     "clean:build": "rm -rf dist tsconfig.tsbuildinfo && pnpm run build",
-    "lint": "oxlint",
+    "lint": "pnpm run build && oxlint",
     "format": "oxfmt",
     "format:check": "oxfmt --check",
     "type-check": "tsc --noEmit",
