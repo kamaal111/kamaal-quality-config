@@ -39,5 +39,6 @@ that bypasses the features and post-create setup that install the pinned Node.js
   keep deriving rule lists from the source plugin rather than hand-copying rule names, where possible.
 - The repo lints itself via `oxlint.config.ts` at the root, which imports `./src/index.ts` directly
   (with the explicit `.ts` extension — oxlint's config loader can't resolve extensionless relative
-  imports) and extends its `oxlint` member. This runs against the uncompiled source, so there's no need to build
-  `dist/` first and no separate hand-maintained `.oxlintrc.json` to keep in sync with `src/index.ts`.
+  imports) and extends its `oxlint` member. Plugin subpaths resolve to compiled JavaScript, so
+  `pnpm lint` builds `dist/` first. There is no separate hand-maintained `.oxlintrc.json` to keep
+  in sync with `src/index.ts`.
