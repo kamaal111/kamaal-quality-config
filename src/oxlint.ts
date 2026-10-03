@@ -84,6 +84,7 @@ export default defineConfig({
     'vitest/expect-expect': 'error',
     'anti-slop/no-runtime-typeof': ['error', { allowInTypeGuards: true }],
     'unicorn/no-abusive-eslint-disable': 'error',
+    'no-nested-ternary': 'error',
     'import-js/order': [
       'error',
       {
