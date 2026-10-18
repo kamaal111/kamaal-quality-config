@@ -56,15 +56,15 @@
     "eslint-plugin-import": "^2.32.0"
   },
   "devDependencies": {
-    "@oxlint/plugins": "^1.82.0",
-    "@types/node": "^26.5.1",
+    "@oxlint/plugins": "^1.88.0",
+    "@types/node": "^22.20.5",
     "husky": "^9.1.7",
-    "lint-staged": "^17.5.1",
-    "oxfmt": "^0.67.0",
-    "oxlint": "^1.82.0",
-    "oxlint-tsgolint": "^7.0.2001",
+    "lint-staged": "^17.6.0",
+    "oxfmt": "^0.73.0",
+    "oxlint": "^1.88.0",
+    "oxlint-tsgolint": "^7.0.2004",
     "typescript": "^7.0.2",
-    "vitest": "^5.0.1"
+    "vitest": "^5.0.5"
   },
   "lint-staged": {
     "*.{js,mjs,cjs,ts}": "pnpm run lint",
@@ -73,11 +73,11 @@
   "devEngines": {
     "packageManager": {
       "name": "pnpm",
-      "version": "12.4.1",
+      "version": "12.14.0",
       "onFail": "error"
     }
   },
   "engines": {
-    "node": ">=26.0.0"
+    "node": ">=22.12.0"
   }
 }

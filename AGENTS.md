@@ -2,7 +2,7 @@
 
 ## Build, Test, and Development Commands
 
-Use `pnpm` 12.4.1 (installed with pnpm's standalone script) on Node.js 26.
+Use `pnpm` 12.14.0 (installed with pnpm's standalone script) on Node.js 26.
 
 Run every repository command inside the devcontainer. The host shell is unsupported: use an active
 Dev Container terminal or the Dev Containers CLI. Do not invoke the Compose service directly, because

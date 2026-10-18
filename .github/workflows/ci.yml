@@ -18,25 +18,13 @@ jobs:
     timeout-minutes: 10
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
-      - name: Read pnpm version
-        id: pnpm-version
-        run: echo "version=$(jq -r '.devEngines.packageManager.version' package.json)" >> "$GITHUB_OUTPUT"
-
-      - name: Set up pnpm
-        uses: pnpm/action-setup@v5
-        with:
-          version: ${{ steps.pnpm-version.outputs.version }}
-
-      - uses: actions/setup-node@v7
+      - uses: pnpm/setup@v3
         with:
           node-version-file: .nvmrc
-          cache: pnpm
-          cache-dependency-path: pnpm-lock.yaml
-
-      - name: Bootstrap
-        run: pnpm install --frozen-lockfile
+          cache: true
+          require-lockfile: true
 
       - name: Quality
         run: pnpm quality
@@ -49,25 +37,42 @@ jobs:
     timeout-minutes: 10
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
-      - name: Read pnpm version
-        id: pnpm-version
-        run: echo "version=$(jq -r '.devEngines.packageManager.version' package.json)" >> "$GITHUB_OUTPUT"
-
-      - name: Set up pnpm
-        uses: pnpm/action-setup@v5
-        with:
-          version: ${{ steps.pnpm-version.outputs.version }}
-
-      - uses: actions/setup-node@v7
+      - uses: pnpm/setup@v3
         with:
           node-version-file: .nvmrc
-          cache: pnpm
-          cache-dependency-path: pnpm-lock.yaml
-
-      - name: Bootstrap
-        run: pnpm install --frozen-lockfile
+          cache: true
+          require-lockfile: true
 
       - name: Test
         run: pnpm test
+
+  consumer:
+    name: Consumer (Node 22)
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/setup@v3
+        with:
+          runtime: node@22
+          install: false
+
+      - name: Locate consumer runtime
+        id: consumer-node
+        run: |
+          install -m 755 "$(node -p 'process.execPath')" "$RUNNER_TEMP/consumer-node"
+          echo "path=$RUNNER_TEMP/consumer-node" >> "$GITHUB_OUTPUT"
+
+      - uses: pnpm/setup@v3
+        with:
+          node-version-file: .nvmrc
+          cache: true
+          require-lockfile: true
+
+      - name: Test packed consumer
+        env:
+          CONSUMER_NODE: ${{ steps.consumer-node.outputs.path }}
+        run: pnpm test src/packed-consumer.test.ts
