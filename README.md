@@ -25,6 +25,8 @@ More rule sources will be folded in over time.
 
 ## Install
 
+Consumers require Node.js 22.12.0 or newer.
+
 ```sh
 pnpm add -D @kamaal111/kamaal-quality-config
 ```
@@ -106,7 +108,17 @@ const result = await format(filepath, sourceText, options);
 
 ## Development
 
+Use the devcontainer with Node.js 26 (as specified in `.nvmrc`) and pnpm 12.14.0.
+The development and release runtime is newer than the minimum supported consumer runtime.
+
 ```sh
 pnpm install
 pnpm quality
+pnpm test
 ```
+
+Vitest also checks the packed package. To select a consumer runtime, run
+`CONSUMER_NODE=/absolute/path/to/node pnpm test src/packed-consumer.test.ts` inside the devcontainer.
+CI selects the latest Node.js 22 release while building and running Vitest on Node.js 26.
+The test fixture installs the JS plugins at the consumer project root, where oxlint resolves
+the plugin specifiers in the shared configuration.
