@@ -1,6 +1,6 @@
 # @kamaal111/kamaal-quality-config
 
-Kamaal Farah's shared [oxlint](https://oxc.rs) quality configs.
+Kamaal Farah's shared quality configs for [oxlint and oxfmt](https://oxc.rs) and Swift format.
 
 Currently enables every rule from [`@kamaal111/oxlint-plugin-anti-slop`](https://github.com/kamaal111/anti-slop),
 Kamaal's fork of [`dmmulroy/anti-slop`](https://github.com/dmmulroy/anti-slop), plus a curated set of
@@ -28,6 +28,7 @@ More rule sources will be folded in over time.
 - [Usage](#usage)
   - [oxlint](#oxlint)
   - [oxfmt](#oxfmt)
+  - [Swift format](#swift-format)
 - [Development](#development)
 
 ## Install
@@ -113,6 +114,31 @@ const { default: options } = await import(pathToFileURL(path.join(repoRoot, 'oxf
 const result = await format(filepath, sourceText, options);
 ```
 
+### Swift format
+
+The package ships a shared configuration for Swift's built-in formatter. Install the package using
+pnpm as above, and install a Swift toolchain separately. From your project's root, run:
+
+```sh
+swift format lint --strict -r . \
+  --configuration node_modules/@kamaal111/kamaal-quality-config/swift-format.json
+```
+
+To format files in place:
+
+```sh
+swift format format --in-place -r . \
+  --configuration node_modules/@kamaal111/kamaal-quality-config/swift-format.json
+```
+
+Paths are relative to your working directory. Swift format does not support `extends`:
+`--configuration` selects this complete configuration and does not merge your project's
+`.swift-format` file. The shared style uses four-space indentation and a 120-character line limit.
+
+For programmatic consumption, import the same plain object from
+`@kamaal111/kamaal-quality-config/swift-format` or use `kamaalQuality.swiftFormat` from the root
+namespace. The generated JSON is also exported at the `./swift-format.json` package subpath.
+
 ## Development
 
 Use the devcontainer with Node.js 26 (as specified in `.nvmrc`) and pnpm 12.14.0.
@@ -129,3 +155,10 @@ Vitest also checks the packed package. To select a consumer runtime, run
 CI selects the latest Node.js 22 release while building and running Vitest on Node.js 26.
 The test fixture installs the JS plugins at the consumer project root, where oxlint resolves
 the plugin specifiers in the shared configuration.
+
+The dependency-free example package in `fixtures/swift-format` verifies the installed Swift config.
+CI's Swift consumer job supplies Swift 6.4.1 and runs `pnpm test:swift-format`: it builds the package,
+lints it using the packed npm artifact, rejects two-space indentation, and verifies formatter repair
+and idempotence. To run that command locally, Swift must be available inside the devcontainer.
+The dedicated command fails if Swift is missing; ordinary `pnpm test` skips only the Swift toolchain
+cases while still checking the packed configuration and exports, including on Node.js 22.

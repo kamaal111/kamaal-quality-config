@@ -76,3 +76,25 @@ jobs:
         env:
           CONSUMER_NODE: ${{ steps.consumer-node.outputs.path }}
         run: pnpm test src/packed-consumer.test.ts
+
+  swift-consumer:
+    name: Swift consumer
+    timeout-minutes: 15
+    runs-on: ubuntu-24.04
+    container: swift:6.4.1-noble
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/setup@v3
+        with:
+          node-version-file: .nvmrc
+          cache: true
+          require-lockfile: true
+
+      - name: Swift versions
+        run: |
+          swift --version
+          swift format --version
+
+      - name: Test Swift consumer
+        run: pnpm test:swift-format
