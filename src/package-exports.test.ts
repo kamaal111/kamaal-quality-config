@@ -14,6 +14,13 @@ test('package exports stay in sync', async () => {
 
   const oxlintrc = JSON.parse(await fs.readFile('dist/oxlintrc.json', 'utf8'));
 
+  const nullishPlugin = await import('@kamaal111/kamaal-quality-config/plugins/prefer-nullish');
+
+  expect(nullishPlugin.default.meta.name).toBe('kamaal-zod');
+  expect(oxlintrc.rules['kamaal-zod/prefer-nullish']).toBe('error');
+  expect(oxlintrc.rules['@stylistic/lines-between-class-members'][0]).toBe('error');
+  expect(oxlintrc.rules['no-restricted-imports'][0]).toBe('error');
+  expect(oxlintrc.rules['no-restricted-properties'][0]).toBe('error');
   expect(oxlintrc).toHaveProperty('rules');
   expect(oxlintrc).not.toHaveProperty('oxfmt');
   expect(oxlintrc).toEqual(JSON.parse(JSON.stringify(rootModule.oxlint)));

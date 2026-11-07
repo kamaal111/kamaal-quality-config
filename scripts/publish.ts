@@ -1,10 +1,10 @@
 #!/usr/bin/env node
-import { spawnSync } from 'node:child_process';
+import childProcess from 'node:child_process';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import url from 'node:url';
 
-const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const repositoryRoot = path.resolve(path.dirname(url.fileURLToPath(import.meta.url)), '..');
 
 const packageJSONPath = path.join(repositoryRoot, 'package.json');
 
@@ -31,7 +31,10 @@ if (response.ok) {
 
 await fs.writeFile(packageJSONPath, `${JSON.stringify({ ...packageJSON, version }, null, 2)}\n`);
 
-const result = spawnSync('pnpm', ['publish', '--no-git-checks'], { cwd: repositoryRoot, stdio: 'inherit' });
+const result = childProcess.spawnSync('pnpm', ['publish', '--no-git-checks'], {
+  cwd: repositoryRoot,
+  stdio: 'inherit',
+});
 
 if (result.status !== 0) {
   fail('pnpm publish failed');

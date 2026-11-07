@@ -8,6 +8,13 @@ Run every repository command inside the devcontainer. The host shell is unsuppor
 Dev Container terminal or the Dev Containers CLI. Do not invoke the Compose service directly, because
 that bypasses the features and post-create setup that install the pinned Node.js and pnpm versions.
 
+If no devcontainer is running, create one yourself without asking the user. From the host, use
+`devcontainer up --workspace-folder "$PWD"` (or `npx @devcontainers/cli up --workspace-folder "$PWD"`
+when the CLI is not installed). Wait for features and post-create setup to finish, then run commands
+with `devcontainer exec --workspace-folder "$PWD" bash -lc 'export PATH="/root/.local/share/pnpm/bin:$PATH"; pnpm quality'`.
+Host-side Dev Containers CLI orchestration is permitted; repository commands still run inside the
+container. Prefer the standalone pnpm installed by post-create over any image-provided pnpm.
+
 - `pnpm install`: install dependencies from the lockfile.
 - `pnpm build`: compile TypeScript to `dist/`.
 - `pnpm clean:build`: remove `dist/` and rebuild.

@@ -2,11 +2,11 @@ import childProcess from 'node:child_process';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import url from 'node:url';
 
 import packageJSON from '../package.json' with { type: 'json' };
 
-const repositoryRoot = fileURLToPath(new URL('../', import.meta.url));
+const repositoryRoot = url.fileURLToPath(new URL('../', import.meta.url));
 
 const consumerNode = process.env.CONSUMER_NODE ?? process.execPath;
 
@@ -66,13 +66,15 @@ test('packed exports and generated configuration load in the consumer runtime', 
        import importsPlugin from '@kamaal111/kamaal-quality-config/plugins/consistent-inline-type-imports';
        import ternaryPlugin from '@kamaal111/kamaal-quality-config/plugins/no-nullish-check-first-ternary';
 
+       const { default: nullishPlugin } = await import('@kamaal111/kamaal-quality-config/plugins/prefer-nullish');
+
        const entrypoint = import.meta.resolve('@kamaal111/kamaal-quality-config');
        const generatedConfig = JSON.parse(await fs.readFile(new URL('./oxlintrc.json', entrypoint), 'utf8'));
        const metadata = JSON.parse(await fs.readFile(new URL('../package.json', entrypoint), 'utf8'));
 
        console.log(JSON.stringify({
          exportIdentities: [quality.oxlint === oxlint, quality.oxfmt === oxfmt, oxlintConfig === oxlint, oxfmtConfig === oxfmt],
-         pluginNames: [importsPlugin.meta.name, ternaryPlugin.meta.name],
+         pluginNames: [importsPlugin.meta.name, ternaryPlugin.meta.name, nullishPlugin.meta.name],
          style: oxfmt,
          generatedConfig,
          config: oxlint,
@@ -89,7 +91,7 @@ test('packed exports and generated configuration load in the consumer runtime', 
   const result = JSON.parse(consumer.stdout);
 
   expect(result.exportIdentities).toEqual([true, true, true, true]);
-  expect(result.pluginNames).toEqual(['kamaal-imports', 'kamaal-ternary']);
+  expect(result.pluginNames).toEqual(['kamaal-imports', 'kamaal-ternary', 'kamaal-zod']);
   expect(result.style).toEqual({ printWidth: 120, arrowParens: 'avoid', singleQuote: true });
   expect(result.generatedConfig).toEqual(result.config);
   expect(result.engine).toBe('>=22.12.0');
@@ -106,4 +108,28 @@ test('packed JSON configuration loads its plugins in a consumer project', () => 
   expect(lint.stderr).toBe('');
   expect(lint.status).toBe(0);
   expect(lint.stdout).toContain('Found 0 warnings and 0 errors.');
+});
+
+test.each([
+  ['nullish.js', 'export const schema = z.string().nullable().optional();', 'kamaal-zod(prefer-nullish)'],
+  [
+    'spacing.js',
+    'export class Example { value = 1; read() { return this.value; } }',
+    '@stylistic(lines-between-class-members)',
+  ],
+  ['imports.js', "import { readFile } from 'node:fs/promises';\nexport { readFile };", 'eslint(no-restricted-imports)'],
+  ['assign.js', 'export const result = Object.assign({}, { value: 1 });', 'eslint(no-restricted-properties)'],
+])('packed JSON config rejects %s', async (filename, source, diagnostic) => {
+  await fs.writeFile(path.join(workspace, filename), source);
+
+  const lint = childProcess.spawnSync(consumerNode, ['node_modules/oxlint/bin/oxlint', '--format', 'json', filename], {
+    cwd: workspace,
+    encoding: 'utf8',
+    timeout: 30_000,
+  });
+
+  expect(lint.error).toBeUndefined();
+  expect(lint.stderr).toBe('');
+  expect(lint.status).toBe(1);
+  expect(lint.stdout).toContain(diagnostic);
 });
