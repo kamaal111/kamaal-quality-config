@@ -236,3 +236,129 @@ describe.skipIf(process.env.SWIFT_FORMAT_TEST !== '1')('packed Swift format conf
     expect(await fs.readFile(sourceFile, 'utf8')).toBe(source);
   }, 180_000);
 });
+
+test('packed package installs the kqc executable and only Swift source artifacts', async () => {
+  const installed = path.join(workspace, 'node_modules', packageJSON.name);
+  const files = await fs.readdir(path.join(installed, 'swift/SwiftLintChecks'), { recursive: true });
+  expect(files).toContain('Package.swift');
+  expect(files).toContain('Package.resolved');
+  expect(files).toContain('Sources/SwiftLintChecks/SwiftLintChecks.swift');
+  expect(files).toContain('Tests/SwiftLintChecksTests/SwiftLintCommandTests.swift');
+  expect(files.some(file => file.split(path.sep).includes('.build'))).toBe(false);
+  expect(files.some(file => file.split(path.sep).includes('.swiftpm'))).toBe(false);
+
+  const executable = path.join(workspace, 'node_modules/.bin/kqc');
+  const help = childProcess.spawnSync(executable, ['--help'], { cwd: workspace, encoding: 'utf8' });
+  expect(help.error).toBeUndefined();
+  expect(help.status).toBe(0);
+  expect(help.stdout).toContain('Usage: kqc swift-lint [paths...]');
+
+  const consumer = childProcess.spawnSync(consumerNode, [path.join(installed, 'dist/cli.js'), 'swift-lint', '--help'], {
+    cwd: workspace,
+    encoding: 'utf8',
+  });
+
+  expect(consumer.error).toBeUndefined();
+  expect(consumer.status).toBe(0);
+  expect(consumer.stderr).toBe('');
+});
+
+describe.skipIf(process.env.SWIFT_LINT_TEST !== '1')('packed Swift lint CLI', () => {
+  const cli = path.join(workspace, 'node_modules', packageJSON.name, 'dist/cli.js');
+
+  function lint(directory: string, args: readonly string[] = []) {
+    return childProcess.spawnSync(consumerNode, [cli, 'swift-lint', ...args], {
+      cwd: directory,
+      encoding: 'utf8',
+      timeout: 900_000,
+    });
+  }
+
+  async function consumerDirectory() {
+    return fs.mkdtemp(path.join(workspace, 'swift-lint-consumer-'));
+  }
+
+  const clean = 'struct Example {\n    let value = 1\n\n    func read() {}\n}\n';
+  const invalid = 'struct Example {\n    let value = 1\n    func read() {}\n}\n';
+
+  test('checks the current directory, ignores dependency and hidden sources, and leaves files unchanged', async () => {
+    const directory = await consumerDirectory();
+    const file = path.join(directory, 'Example.swift');
+    await fs.writeFile(file, clean);
+
+    for (const ignored of ['.build', '.hidden', 'node_modules']) {
+      await fs.mkdir(path.join(directory, ignored));
+      await fs.writeFile(path.join(directory, ignored, 'Ignored.swift'), invalid);
+    }
+
+    await fs.writeFile(path.join(directory, 'Ignored.txt'), invalid);
+    await fs.symlink(path.join(directory, 'node_modules'), path.join(directory, 'LinkedSources'));
+    const result = lint(directory);
+    expect(result.error).toBeUndefined();
+    expect(result.status).toBe(0);
+    expect(result.stdout).toBe('');
+    expect(await fs.readFile(file, 'utf8')).toBe(clean);
+  }, 960_000);
+
+  test('checks multiple explicit targets with spaces and omits sources outside the targets', async () => {
+    const directory = await consumerDirectory();
+    await fs.mkdir(path.join(directory, 'Source Files'));
+    await fs.writeFile(path.join(directory, 'Source Files/Example.swift'), clean);
+    await fs.writeFile(path.join(directory, 'Another Example.swift'), clean);
+    await fs.writeFile(path.join(directory, 'Outside.swift'), invalid);
+    const result = lint(directory, ['Source Files', 'Another Example.swift']);
+    expect(result.error).toBeUndefined();
+    expect(result.status).toBe(0);
+    expect(result.stdout).toBe('');
+  }, 60_000);
+
+  test.each([
+    { name: 'member spacing', source: invalid, diagnostic: '[member_spacing]' },
+    {
+      name: 'multiline chain spacing',
+      source: 'let value = Text(\n    "Example"\n).padding()\n',
+      diagnostic: '[multiline_chain_spacing]',
+    },
+    {
+      name: 'view body declarations',
+      source:
+        'struct Example: View {\n    var body: some View {\n        let value = 1\n        Text("\\(value)")\n    }\n}\n',
+      diagnostic: '[view_body_declarations]',
+    },
+    {
+      name: 'invalid syntax',
+      source: 'struct Example {',
+      diagnostic: 'Cannot lint Swift source because Swift syntax is invalid.',
+    },
+  ])(
+    'rejects $name and leaves source unchanged',
+    async ({ source, diagnostic }) => {
+      const directory = await consumerDirectory();
+      const file = path.join(directory, 'Example.swift');
+      await fs.writeFile(file, source);
+      const result = lint(directory, ['Example.swift']);
+      expect(result.error).toBeUndefined();
+      expect(result.status).toBe(1);
+      expect(result.stdout).toContain(diagnostic);
+      expect(result.stdout).toContain(file + ':');
+      expect(await fs.readFile(file, 'utf8')).toBe(source);
+    },
+    60_000,
+  );
+
+  test('fails for a missing target', async () => {
+    const directory = await consumerDirectory();
+    const result = lint(directory, ['Missing.swift']);
+    expect(result.error).toBeUndefined();
+    expect(result.status).toBe(1);
+    expect(result.stdout).toContain('Missing.swift:1:1: error: Cannot lint Swift source:');
+  }, 60_000);
+
+  test('succeeds for an empty directory', async () => {
+    const directory = await consumerDirectory();
+    const result = lint(directory);
+    expect(result.error).toBeUndefined();
+    expect(result.status).toBe(0);
+    expect(result.stdout).toBe('');
+  }, 60_000);
+});

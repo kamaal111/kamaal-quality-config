@@ -79,7 +79,7 @@ jobs:
 
   swift-consumer:
     name: Swift consumer
-    timeout-minutes: 15
+    timeout-minutes: 30
     runs-on: ubuntu-24.04
     container: swift:6.4.1-noble
     steps:
@@ -98,3 +98,6 @@ jobs:
 
       - name: Test Swift consumer
         run: pnpm test:swift-format
+
+      - name: Test Swift lint CLI
+        run: pnpm test:swift-lint

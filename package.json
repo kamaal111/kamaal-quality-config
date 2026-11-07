@@ -14,9 +14,16 @@
     "type": "git",
     "url": "git+https://github.com/kamaal111/kamaal-quality-config.git"
   },
+  "bin": {
+    "kqc": "./dist/cli.js"
+  },
   "files": [
     "dist",
-    "swift-format.json"
+    "swift-format.json",
+    "swift/SwiftLintChecks/Package.swift",
+    "swift/SwiftLintChecks/Package.resolved",
+    "swift/SwiftLintChecks/Sources",
+    "swift/SwiftLintChecks/Tests"
   ],
   "type": "module",
   "main": "./dist/index.js",
@@ -57,7 +64,8 @@
     "test": "pnpm run build && tsc -p tsconfig.tests.json && vitest run",
     "release": "node ./scripts/publish.ts",
     "prepare": "husky",
-    "test:swift-format": "SWIFT_FORMAT_TEST=1 pnpm test src/packed-consumer.test.ts"
+    "test:swift-format": "SWIFT_FORMAT_TEST=1 pnpm test src/packed-consumer.test.ts",
+    "test:swift-lint": "swift test --package-path swift/SwiftLintChecks && SWIFT_LINT_TEST=1 pnpm test src/packed-consumer.test.ts"
   },
   "dependencies": {
     "@kamaal111/oxlint-plugin-anti-slop": "^0.0.5",
