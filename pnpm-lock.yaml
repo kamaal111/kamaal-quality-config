@@ -167,8 +167,8 @@ importers:
   .:
     dependencies:
       '@kamaal111/oxlint-plugin-anti-slop':
-        specifier: ^0.0.4
-        version: 0.0.4
+        specifier: ^0.0.5
+        version: 0.0.5
       eslint-plugin-import:
         specifier: ^2.32.0
         version: 2.32.0(eslint@9.39.5(supports-color@7.2.0))(supports-color@7.2.0)
@@ -271,8 +271,8 @@ packages:
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
 
-  '@kamaal111/oxlint-plugin-anti-slop@0.0.4':
-    resolution: {integrity: sha512-YfHzW4k4t+W6rHUWFfbAN9bJoe5k/stX2KWQ5R/+yL/fh8OflnKj59C1K/qBxU4BAx3+2Bjc/u9w1/DrLsNP3Q==}
+  '@kamaal111/oxlint-plugin-anti-slop@0.0.5':
+    resolution: {integrity: sha512-IRBiDRvXQilyF2rUe4YcSqwhVyOuf0/7H8cpJzyumogcUXu9bU2lENIToHpahnQBtZBkF/PcKOvJaKAwEiAjvg==}
 
   '@oxc-project/types@0.154.0':
     resolution: {integrity: sha512-KYOUGQFlLWR+s4QMV2Q9ko38TZm7EdO87Qm7rvZLqk/webse/cDjtyxKhg/47l0byCbs/k46LT8qc4PKjAikzA==}
@@ -1950,7 +1950,7 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.6.0
 
-  '@kamaal111/oxlint-plugin-anti-slop@0.0.4':
+  '@kamaal111/oxlint-plugin-anti-slop@0.0.5':
     dependencies:
       '@oxlint/plugins': 1.78.0
 
