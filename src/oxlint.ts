@@ -3,6 +3,7 @@ import { defineConfig } from 'oxlint';
 
 import consistentInlineTypeImportsPlugin from './plugins/consistent-inline-type-imports.ts';
 import noNullishCheckFirstTernaryPlugin from './plugins/no-nullish-check-first-ternary.ts';
+import preferNullishPlugin from './plugins/prefer-nullish.ts';
 
 function pluginRules(namespace: string, ruleNames: string[]) {
   return Object.fromEntries(ruleNames.map(ruleName => [`${namespace}/${ruleName}`, 'error'] as const));
@@ -20,9 +21,16 @@ const noNullishCheckFirstTernaryRules = pluginRules(
   Object.keys(noNullishCheckFirstTernaryPlugin.rules),
 );
 
+const preferNullishRules = pluginRules(preferNullishPlugin.meta.name, Object.keys(preferNullishPlugin.rules));
+
 export default defineConfig({
   plugins: ['typescript', 'unicorn', 'oxc', 'vitest'],
   jsPlugins: [
+    '@stylistic/eslint-plugin',
+    {
+      name: preferNullishPlugin.meta.name,
+      specifier: '@kamaal111/kamaal-quality-config/plugins/prefer-nullish',
+    },
     { name: 'anti-slop', specifier: '@kamaal111/oxlint-plugin-anti-slop' },
     { name: 'import-js', specifier: 'eslint-plugin-import' },
     {
@@ -38,6 +46,36 @@ export default defineConfig({
   categories: { correctness: 'error' },
   rules: {
     ...antiSlopRules,
+    ...preferNullishRules,
+    '@stylistic/lines-between-class-members': [
+      'error',
+      {
+        enforce: [
+          { blankLine: 'always', prev: '*', next: 'method' },
+          { blankLine: 'always', prev: 'method', next: '*' },
+        ],
+      },
+    ],
+    'no-restricted-imports': [
+      'error',
+      {
+        patterns: [
+          {
+            regex: '^node:',
+            allowImportNames: ['default'],
+            message: "Use a default import for Node.js modules, for example: import path from 'node:path';",
+          },
+        ],
+      },
+    ],
+    'no-restricted-properties': [
+      'error',
+      {
+        object: 'Object',
+        property: 'assign',
+        message: 'Use explicit typed assignments or object spread instead of Object.assign.',
+      },
+    ],
     ...consistentInlineTypeImportsRules,
     ...noNullishCheckFirstTernaryRules,
     curly: 'error',

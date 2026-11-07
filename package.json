@@ -34,7 +34,8 @@
       "default": "./dist/oxfmt.js"
     },
     "./plugins/consistent-inline-type-imports": "./dist/plugins/consistent-inline-type-imports.js",
-    "./plugins/no-nullish-check-first-ternary": "./dist/plugins/no-nullish-check-first-ternary.js"
+    "./plugins/no-nullish-check-first-ternary": "./dist/plugins/no-nullish-check-first-ternary.js",
+    "./plugins/prefer-nullish": "./dist/plugins/prefer-nullish.js"
   },
   "publishConfig": {
     "access": "public"
@@ -53,6 +54,7 @@
   },
   "dependencies": {
     "@kamaal111/oxlint-plugin-anti-slop": "^0.0.5",
+    "@stylistic/eslint-plugin": "5.10.0",
     "eslint-plugin-import": "^2.32.0"
   },
   "devDependencies": {

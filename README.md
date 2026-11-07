@@ -5,13 +5,20 @@ Kamaal Farah's shared [oxlint](https://oxc.rs) quality configs.
 Currently enables every rule from [`@kamaal111/oxlint-plugin-anti-slop`](https://github.com/kamaal111/anti-slop),
 Kamaal's fork of [`dmmulroy/anti-slop`](https://github.com/dmmulroy/anti-slop), plus a curated set of
 rules from oxlint's built-in `typescript`, `unicorn`, `oxc`, and `vitest` plugins and from
-`eslint-plugin-import` (via oxlint's `jsPlugins`), plus two hand-written local rules:
+`eslint-plugin-import` (via oxlint's `jsPlugins`), plus selected rules from `@stylistic/eslint-plugin` and three hand-written local rules:
 
 - `kamaal-imports/no-all-inline-type-imports` — forbids `import { type A, type B } from 'x'` in favor
   of a top-level `import type { A, B } from 'x'`.
 - `kamaal-ternary/no-nullish-check-first-ternary` — forbids ternaries that check for a nullish value
   first (e.g. `x == null ? undefined : x.trim()`), requiring the value-producing branch first instead
   (`x != null ? x.trim() : undefined`).
+- `kamaal-zod/prefer-nullish` — requires `.nullish()` instead of consecutive `.nullable()` and
+  `.optional()` calls in either order. This syntax-based rule applies to any receiver and has no autofix.
+
+The shared defaults also require blank lines around class methods and constructors (with autofix),
+allow consecutive fields to stay grouped, require default imports for `node:` modules, and prohibit
+`Object.assign` in favor of explicit typed assignments or object spread. Vitest globals and
+project-specific server restrictions remain consumer choices.
 
 More rule sources will be folded in over time.
 
