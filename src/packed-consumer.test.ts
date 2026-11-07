@@ -60,9 +60,11 @@ test('packed exports and generated configuration load in the consumer runtime', 
       '--input-type=module',
       '--eval',
       `import fs from 'node:fs/promises';
-       import quality, { oxfmt, oxlint } from '@kamaal111/kamaal-quality-config';
+       import quality, { oxfmt, oxlint, swiftFormat } from '@kamaal111/kamaal-quality-config';
        import oxfmtConfig from '@kamaal111/kamaal-quality-config/oxfmt';
        import oxlintConfig from '@kamaal111/kamaal-quality-config/oxlint';
+       import swiftConfig from '@kamaal111/kamaal-quality-config/swift-format';
+       import swiftJSON from '@kamaal111/kamaal-quality-config/swift-format.json' with { type: 'json' };
        import importsPlugin from '@kamaal111/kamaal-quality-config/plugins/consistent-inline-type-imports';
        import ternaryPlugin from '@kamaal111/kamaal-quality-config/plugins/no-nullish-check-first-ternary';
 
@@ -70,10 +72,15 @@ test('packed exports and generated configuration load in the consumer runtime', 
 
        const entrypoint = import.meta.resolve('@kamaal111/kamaal-quality-config');
        const generatedConfig = JSON.parse(await fs.readFile(new URL('./oxlintrc.json', entrypoint), 'utf8'));
+       const installedSwiftConfig = JSON.parse(await fs.readFile('node_modules/@kamaal111/kamaal-quality-config/swift-format.json', 'utf8'));
        const metadata = JSON.parse(await fs.readFile(new URL('../package.json', entrypoint), 'utf8'));
 
        console.log(JSON.stringify({
          exportIdentities: [quality.oxlint === oxlint, quality.oxfmt === oxfmt, oxlintConfig === oxlint, oxfmtConfig === oxfmt],
+         swiftExportIdentities: [quality.swiftFormat === swiftFormat, swiftConfig === swiftFormat],
+         swiftConfig: swiftFormat,
+         swiftJSON,
+         installedSwiftConfig,
          pluginNames: [importsPlugin.meta.name, ternaryPlugin.meta.name, nullishPlugin.meta.name],
          style: oxfmt,
          generatedConfig,
@@ -94,6 +101,10 @@ test('packed exports and generated configuration load in the consumer runtime', 
   expect(result.pluginNames).toEqual(['kamaal-imports', 'kamaal-ternary', 'kamaal-zod']);
   expect(result.style).toEqual({ printWidth: 120, arrowParens: 'avoid', singleQuote: true });
   expect(result.generatedConfig).toEqual(result.config);
+  expect(result.swiftExportIdentities).toEqual([true, true]);
+  expect(result.swiftJSON).toEqual(result.swiftConfig);
+  expect(result.installedSwiftConfig).toEqual(result.swiftConfig);
+  expect(result.swiftConfig.indentation).toEqual({ spaces: 4 });
   expect(result.engine).toBe('>=22.12.0');
 });
 
@@ -132,4 +143,96 @@ test.each([
   expect(lint.stderr).toBe('');
   expect(lint.status).toBe(1);
   expect(lint.stdout).toContain(diagnostic);
+});
+
+describe.skipIf(process.env.SWIFT_FORMAT_TEST !== '1')('packed Swift format configuration', () => {
+  const configuration = path.join(workspace, 'node_modules', packageJSON.name, 'swift-format.json');
+
+  async function copySwiftPackage() {
+    const directory = await fs.mkdtemp(path.join(workspace, 'swift-consumer-'));
+    await fs.cp(path.join(repositoryRoot, 'fixtures/swift-format'), directory, { recursive: true });
+
+    return directory;
+  }
+
+  function runSwift(directory: string, args: readonly string[]) {
+    return childProcess.spawnSync('swift', args, {
+      cwd: directory,
+      encoding: 'utf8',
+      timeout: 120_000,
+    });
+  }
+
+  test('builds and lints a clean Swift package using the installed configuration', async () => {
+    const directory = await copySwiftPackage();
+    const build = runSwift(directory, ['build']);
+
+    expect(build.error).toBeUndefined();
+    expect(build).toMatchObject({ status: 0 });
+
+    const lint = runSwift(directory, [
+      'format',
+      'lint',
+      '--strict',
+      '-r',
+      'Package.swift',
+      'Sources',
+      '--configuration',
+      configuration,
+    ]);
+
+    expect(lint.error).toBeUndefined();
+    expect(lint).toMatchObject({ status: 0 });
+  }, 180_000);
+
+  test('rejects two-space indentation using the installed four-space configuration', async () => {
+    const directory = await copySwiftPackage();
+    const sourceFile = path.join(directory, 'Sources/FormatExample/main.swift');
+    const source = await fs.readFile(sourceFile, 'utf8');
+    await fs.writeFile(sourceFile, source.replaceAll('    ', '  '));
+
+    const lint = runSwift(directory, ['format', 'lint', '--strict', sourceFile, '--configuration', configuration]);
+
+    expect(lint.error).toBeUndefined();
+    expect(lint).toMatchObject({ status: 1 });
+    expect(lint.stderr).toContain('indent');
+  }, 180_000);
+
+  test('repairs indentation and leaves an already formatted source unchanged', async () => {
+    const directory = await copySwiftPackage();
+    const sourceFile = path.join(directory, 'Sources/FormatExample/main.swift');
+    const source = await fs.readFile(sourceFile, 'utf8');
+    await fs.writeFile(sourceFile, source.replaceAll('    ', '  '));
+
+    const format = runSwift(directory, [
+      'format',
+      'format',
+      '--in-place',
+      sourceFile,
+      '--configuration',
+      configuration,
+    ]);
+
+    expect(format.error).toBeUndefined();
+    expect(format).toMatchObject({ status: 0 });
+    expect(await fs.readFile(sourceFile, 'utf8')).toBe(source);
+
+    const lint = runSwift(directory, ['format', 'lint', '--strict', sourceFile, '--configuration', configuration]);
+
+    expect(lint.error).toBeUndefined();
+    expect(lint).toMatchObject({ status: 0 });
+
+    const repeat = runSwift(directory, [
+      'format',
+      'format',
+      '--in-place',
+      sourceFile,
+      '--configuration',
+      configuration,
+    ]);
+
+    expect(repeat.error).toBeUndefined();
+    expect(repeat).toMatchObject({ status: 0 });
+    expect(await fs.readFile(sourceFile, 'utf8')).toBe(source);
+  }, 180_000);
 });

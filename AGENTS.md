@@ -30,7 +30,7 @@ container. Prefer the standalone pnpm installed by post-create over any image-pr
   `@kamaal111/oxlint-plugin-anti-slop`. The rule map is generated from `Object.keys(antiSlopPlugin.rules)`,
   so every rule the anti-slop plugin exports is enabled by default. Do not hardcode individual rule
   names — bumping the `@kamaal111/oxlint-plugin-anti-slop` dependency is enough to pick up new rules.
-- `src/index.ts` exports the root namespace (`oxlint` and `oxfmt`) and re-exports both named configs.
+- `src/index.ts` exports the root namespace (`oxlint`, `oxfmt`, and `swiftFormat`) and re-exports the named configs.
 - `pnpm build` also runs `scripts/generate-json-config.ts`, which imports the built `dist/oxlint.js`
   config object and serializes it to `dist/oxlintrc.json`. This is the primary consumption artifact:
   it lets consumers use plain `.oxlintrc.json` `extends` (file paths only, no package imports)
@@ -49,3 +49,12 @@ container. Prefer the standalone pnpm installed by post-create over any image-pr
   imports) and extends its `oxlint` member. Plugin subpaths resolve to compiled JavaScript, so
   `pnpm lint` builds `dist/` first. There is no separate hand-maintained `.oxlintrc.json` to keep
   in sync with `src/index.ts`.
+
+- `src/swift-format.ts` owns the shared Swift format settings. The build serializes its compiled
+  object to package-root `swift-format.json`; oxlint JSON stays in `dist/`. Never hand-edit either
+  generated artifact. The root Swift JSON is ignored by Git and explicitly included in package files.
+  Swift consumers pass the installed JSON path to `swift format --configuration`; it does not merge
+  local configs. Keep the README's Swift format section in sync with that interface.
+- `pnpm test:swift-format` runs the packed-consumer tests with real Swift integration enabled.
+  The fixture in `fixtures/swift-format` must build and lint with the installed package's config.
+  CI supplies Swift 6.4.1; missing Swift must fail the dedicated command rather than skip coverage.

@@ -28,3 +28,18 @@ test('package exports stay in sync', async () => {
     true,
   );
 });
+
+test('Swift format exports and generated JSON preserve the shared style', async () => {
+  const rootModule = await import('@kamaal111/kamaal-quality-config');
+  const swiftModule = await import('@kamaal111/kamaal-quality-config/swift-format');
+  const jsonModule = await import('@kamaal111/kamaal-quality-config/swift-format.json', { with: { type: 'json' } });
+  const generated = JSON.parse(await fs.readFile('swift-format.json', 'utf8'));
+
+  expect(rootModule.default.swiftFormat).toBe(rootModule.swiftFormat);
+  expect(swiftModule.default).toBe(rootModule.swiftFormat);
+  expect(jsonModule.default).toEqual(rootModule.swiftFormat);
+  expect(generated).toEqual(rootModule.swiftFormat);
+  expect(generated.indentation).toEqual({ spaces: 4 });
+  expect(generated.lineLength).toBe(120);
+  expect(generated.rules.NeverForceUnwrap).toBe(true);
+});

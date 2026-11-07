@@ -1,7 +1,7 @@
 {
   "name": "@kamaal111/kamaal-quality-config",
   "version": "0.0.1",
-  "description": "Kamaal Farah's shared oxlint quality config.",
+  "description": "Kamaal Farah's shared quality configurations.",
   "keywords": [
     "lint",
     "oxlint",
@@ -15,7 +15,8 @@
     "url": "git+https://github.com/kamaal111/kamaal-quality-config.git"
   },
   "files": [
-    "dist"
+    "dist",
+    "swift-format.json"
   ],
   "type": "module",
   "main": "./dist/index.js",
@@ -35,7 +36,12 @@
     },
     "./plugins/consistent-inline-type-imports": "./dist/plugins/consistent-inline-type-imports.js",
     "./plugins/no-nullish-check-first-ternary": "./dist/plugins/no-nullish-check-first-ternary.js",
-    "./plugins/prefer-nullish": "./dist/plugins/prefer-nullish.js"
+    "./plugins/prefer-nullish": "./dist/plugins/prefer-nullish.js",
+    "./swift-format": {
+      "types": "./dist/swift-format.d.ts",
+      "default": "./dist/swift-format.js"
+    },
+    "./swift-format.json": "./swift-format.json"
   },
   "publishConfig": {
     "access": "public"
@@ -50,7 +56,8 @@
     "quality": "pnpm run lint && pnpm run format:check && pnpm run type-check",
     "test": "pnpm run build && tsc -p tsconfig.tests.json && vitest run",
     "release": "node ./scripts/publish.ts",
-    "prepare": "husky"
+    "prepare": "husky",
+    "test:swift-format": "SWIFT_FORMAT_TEST=1 pnpm test src/packed-consumer.test.ts"
   },
   "dependencies": {
     "@kamaal111/oxlint-plugin-anti-slop": "^0.0.5",
