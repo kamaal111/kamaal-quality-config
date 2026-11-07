@@ -8,3 +8,6 @@ dist/
 .claude/worktrees
 .agents/worktrees
 /swift-format.json
+
+.build/
+.swiftpm/

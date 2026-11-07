@@ -1,6 +1,6 @@
 # @kamaal111/kamaal-quality-config
 
-Kamaal Farah's shared quality configs for [oxlint and oxfmt](https://oxc.rs) and Swift format.
+Kamaal Farah's shared quality configs for [oxlint and oxfmt](https://oxc.rs), Swift format, and custom Swift lint checks.
 
 Currently enables every rule from [`@kamaal111/oxlint-plugin-anti-slop`](https://github.com/kamaal111/anti-slop),
 Kamaal's fork of [`dmmulroy/anti-slop`](https://github.com/dmmulroy/anti-slop), plus a curated set of
@@ -29,6 +29,7 @@ More rule sources will be folded in over time.
   - [oxlint](#oxlint)
   - [oxfmt](#oxfmt)
   - [Swift format](#swift-format)
+  - [Swift lint](#swift-lint)
 - [Development](#development)
 
 ## Install
@@ -139,6 +140,40 @@ For programmatic consumption, import the same plain object from
 `@kamaal111/kamaal-quality-config/swift-format` or use `kamaalQuality.swiftFormat` from the root
 namespace. The generated JSON is also exported at the `./swift-format.json` package subpath.
 
+### Swift lint
+
+The package provides `kqc swift-lint` for syntax-based Swift checks. Install a Swift 6.4 or newer
+toolchain separately, then run from your project root:
+
+```sh
+pnpm exec kqc swift-lint
+pnpm exec kqc swift-lint Sources Tests
+pnpm exec kqc swift-lint "Source Files/Example.swift"
+```
+
+In package scripts, use `"lint:swift": "kqc swift-lint Sources Tests"`. With the package installed
+globally, invoke `kqc swift-lint` directly.
+
+Without paths, the command checks the current directory recursively. Explicit file and directory
+paths are relative to your working directory. Recursive scanning skips hidden paths (including
+`.build`), `node_modules`, symlinks, and non-Swift files. Use `--` before paths starting with a dash.
+
+All three checks are enabled:
+
+- `member_spacing`: separate methods and initializers from adjacent members with a blank line.
+- `multiline_chain_spacing`: put each chained call on its own line in multiline expressions.
+- `view_body_declarations`: move local `let` and `var` declarations out of SwiftUI
+  `var body: some View`, including nested builder closures. Conditional bindings remain allowed.
+
+The CLI runs `swift run --package-path` against the bundled `SwiftLintChecks` package and does not
+modify source files. Diagnostics include file, line, column, and rule identifier. Exit codes are
+`0` for clean sources, `1` for violations or unreadable/invalid sources, `2` for usage errors,
+and `127` when Swift is missing. Swift build failures retain their exit status.
+
+The first invocation may download SwiftSyntax and compile the checker. SwiftPM caches build
+artifacts in the installed Swift package's `.build` directory, so that directory must be writable.
+Subsequent invocations reuse the build. Run `kqc swift-lint --help` for usage.
+
 ## Development
 
 Use the devcontainer with Node.js 26 (as specified in `.nvmrc`) and pnpm 12.14.0.
@@ -162,3 +197,8 @@ lints it using the packed npm artifact, rejects two-space indentation, and verif
 and idempotence. To run that command locally, Swift must be available inside the devcontainer.
 The dedicated command fails if Swift is missing; ordinary `pnpm test` skips only the Swift toolchain
 cases while still checking the packed configuration and exports, including on Node.js 22.
+
+Run `pnpm test:swift-lint` with Swift 6.4 or newer available inside the devcontainer to run the
+bundled checker regression suites and packed CLI integration tests. CI supplies Swift 6.4.1.
+The dedicated command fails if Swift is missing; ordinary tests still verify CLI dispatch,
+packaging, and consumer compatibility without requiring Swift.
