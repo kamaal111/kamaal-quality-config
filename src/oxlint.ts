@@ -5,6 +5,7 @@ import consistentInlineTypeImportsPlugin from './plugins/consistent-inline-type-
 import noNullishCheckFirstTernaryPlugin from './plugins/no-nullish-check-first-ternary.ts';
 import preferNullishPlugin from './plugins/prefer-nullish.ts';
 import preferWhileTruePlugin from './plugins/prefer-while-true.ts';
+import requireMultilineArrowBracesPlugin from './plugins/require-multiline-arrow-braces.ts';
 
 function pluginRules(namespace: string, ruleNames: string[]) {
   return Object.fromEntries(ruleNames.map(ruleName => [`${namespace}/${ruleName}`, 'error'] as const));
@@ -26,10 +27,19 @@ const preferNullishRules = pluginRules(preferNullishPlugin.meta.name, Object.key
 
 const preferWhileTrueRules = pluginRules(preferWhileTruePlugin.meta.name, Object.keys(preferWhileTruePlugin.rules));
 
+const requireMultilineArrowBracesRules = pluginRules(
+  requireMultilineArrowBracesPlugin.meta.name,
+  Object.keys(requireMultilineArrowBracesPlugin.rules),
+);
+
 export default defineConfig({
   plugins: ['typescript', 'unicorn', 'oxc', 'vitest'],
   jsPlugins: [
     { name: '@stylistic', specifier: '@kamaal111/kamaal-quality-config/plugins/stylistic' },
+    {
+      name: requireMultilineArrowBracesPlugin.meta.name,
+      specifier: '@kamaal111/kamaal-quality-config/plugins/require-multiline-arrow-braces',
+    },
     {
       name: preferWhileTruePlugin.meta.name,
       specifier: '@kamaal111/kamaal-quality-config/plugins/prefer-while-true',
@@ -55,6 +65,7 @@ export default defineConfig({
     ...antiSlopRules,
     ...preferNullishRules,
     ...preferWhileTrueRules,
+    ...requireMultilineArrowBracesRules,
     '@stylistic/lines-between-class-members': [
       'error',
       {

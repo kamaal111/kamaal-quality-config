@@ -57,11 +57,11 @@ export default {
               message:
                 'Use a top-level `import type` instead of marking every named specifier with an inline `type` modifier.',
               fix(fixer) {
-                const names = namedSpecifiers.map(specifier =>
-                  specifier.imported.name === specifier.local.name
+                const names = namedSpecifiers.map(specifier => {
+                  return specifier.imported.name === specifier.local.name
                     ? specifier.imported.name
-                    : `${specifier.imported.name} as ${specifier.local.name}`,
-                );
+                    : `${specifier.imported.name} as ${specifier.local.name}`;
+                });
 
                 const sourceText = context.sourceCode.getText(node.source);
 

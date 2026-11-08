@@ -52,7 +52,8 @@
     "./swift-format.json": "./swift-format.json",
     "./plugins/anti-slop": "./dist/plugins/anti-slop.js",
     "./plugins/stylistic": "./dist/plugins/stylistic.js",
-    "./plugins/import": "./dist/plugins/import.js"
+    "./plugins/import": "./dist/plugins/import.js",
+    "./plugins/require-multiline-arrow-braces": "./dist/plugins/require-multiline-arrow-braces.js"
   },
   "publishConfig": {
     "access": "public"

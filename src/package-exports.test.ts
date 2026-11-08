@@ -25,6 +25,10 @@ test('package exports stay in sync', async () => {
   expect(oxlintrc.rules['@stylistic/lines-between-class-members'][0]).toBe('error');
   expect(oxlintrc.rules['no-restricted-imports'][0]).toBe('error');
   expect(oxlintrc.rules['no-restricted-properties'][0]).toBe('error');
+  const arrowsPlugin = await import('@kamaal111/kamaal-quality-config/plugins/require-multiline-arrow-braces');
+
+  expect(arrowsPlugin.default.meta.name).toBe('kamaal-arrows');
+  expect(oxlintrc.rules['kamaal-arrows/require-multiline-arrow-braces']).toBe('error');
   expect(oxlintrc).toHaveProperty('rules');
   expect(oxlintrc).not.toHaveProperty('oxfmt');
   expect(oxlintrc).toEqual(JSON.parse(JSON.stringify(rootModule.oxlint)));

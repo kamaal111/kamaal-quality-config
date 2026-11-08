@@ -15,12 +15,14 @@ const REPO_ROOT = path.resolve(PLUGINS_DIR, '..', '..');
 const OXLINT_BIN = path.join(REPO_ROOT, 'node_modules', '.bin', 'oxlint');
 
 interface LintWithRuleInput {
+  filename?: string;
   plugin: string;
   ruleId: string;
   source: string;
 }
 
 interface LintWithConfigInput {
+  filename?: string;
   config: OxlintConfig;
   ruleId: string;
   source: string;
@@ -37,18 +39,33 @@ function ruleDiagnosticCode(ruleId: string): string {
   return `${namespace}(${ruleName})`;
 }
 
-export async function lintWithRule({ plugin, ruleId, source }: LintWithRuleInput): Promise<LintWithRuleResult> {
+export async function lintWithRule({
+  plugin,
+  ruleId,
+  source,
+  filename,
+}: LintWithRuleInput): Promise<LintWithRuleResult> {
   const pluginPath = path.join(PLUGINS_DIR, plugin);
 
-  return lintWithConfig({ config: { jsPlugins: [pluginPath], rules: { [ruleId]: 'error' } }, ruleId, source });
+  return lintWithConfig({
+    config: { jsPlugins: [pluginPath], rules: { [ruleId]: 'error' } },
+    ruleId,
+    source,
+    filename,
+  });
 }
 
-export async function lintWithConfig({ config, ruleId, source }: LintWithConfigInput): Promise<LintWithRuleResult> {
+export async function lintWithConfig({
+  config,
+  ruleId,
+  source,
+  filename = 'fixture.ts',
+}: LintWithConfigInput): Promise<LintWithRuleResult> {
   const workspace = await fs.mkdtemp(path.join(os.tmpdir(), 'oxlint-rule-test-'));
 
   try {
     const configPath = path.join(workspace, '.oxlintrc.json');
-    const fixturePath = path.join(workspace, 'fixture.ts');
+    const fixturePath = path.join(workspace, filename);
 
     await fs.writeFile(configPath, JSON.stringify(config));
     await fs.writeFile(fixturePath, source);
