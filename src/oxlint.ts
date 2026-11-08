@@ -29,7 +29,7 @@ const preferWhileTrueRules = pluginRules(preferWhileTruePlugin.meta.name, Object
 export default defineConfig({
   plugins: ['typescript', 'unicorn', 'oxc', 'vitest'],
   jsPlugins: [
-    '@stylistic/eslint-plugin',
+    { name: '@stylistic', specifier: '@kamaal111/kamaal-quality-config/plugins/stylistic' },
     {
       name: preferWhileTruePlugin.meta.name,
       specifier: '@kamaal111/kamaal-quality-config/plugins/prefer-while-true',
@@ -38,8 +38,8 @@ export default defineConfig({
       name: preferNullishPlugin.meta.name,
       specifier: '@kamaal111/kamaal-quality-config/plugins/prefer-nullish',
     },
-    { name: 'anti-slop', specifier: '@kamaal111/oxlint-plugin-anti-slop' },
-    { name: 'import-js', specifier: 'eslint-plugin-import' },
+    { name: 'anti-slop', specifier: '@kamaal111/kamaal-quality-config/plugins/anti-slop' },
+    { name: 'import-js', specifier: '@kamaal111/kamaal-quality-config/plugins/import' },
     {
       name: consistentInlineTypeImportsPlugin.meta.name,
       specifier: '@kamaal111/kamaal-quality-config/plugins/consistent-inline-type-imports',
