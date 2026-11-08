@@ -7,7 +7,14 @@ interface RuleFixer {
   replaceTextRange(range: [number, number], text: string): AstNode;
 }
 
+interface Token {
+  value: string;
+  range: [number, number];
+  loc: { end: { line: number } };
+}
+
 interface SourceCode {
+  getTokenBefore(node: AstNode, filter: (token: Token) => boolean): Token | null;
   getText(node: AstNode): string;
 }
 

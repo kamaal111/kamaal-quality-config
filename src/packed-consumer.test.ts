@@ -71,6 +71,7 @@ test('packed exports and generated configuration load in the consumer runtime', 
        import swiftJSON from '@kamaal111/kamaal-quality-config/swift-format.json' with { type: 'json' };
        import importsPlugin from '@kamaal111/kamaal-quality-config/plugins/consistent-inline-type-imports';
        import ternaryPlugin from '@kamaal111/kamaal-quality-config/plugins/no-nullish-check-first-ternary';
+       import arrowsPlugin from '@kamaal111/kamaal-quality-config/plugins/require-multiline-arrow-braces';
 
        const { default: loopsPlugin } = await import('@kamaal111/kamaal-quality-config/plugins/prefer-while-true');
 
@@ -87,7 +88,7 @@ test('packed exports and generated configuration load in the consumer runtime', 
          swiftConfig: swiftFormat,
          swiftJSON,
          installedSwiftConfig,
-         pluginNames: [importsPlugin.meta.name, ternaryPlugin.meta.name, nullishPlugin.meta.name, loopsPlugin.meta.name],
+         pluginNames: [importsPlugin.meta.name, ternaryPlugin.meta.name, nullishPlugin.meta.name, loopsPlugin.meta.name, arrowsPlugin.meta.name],
          style: oxfmt,
          generatedConfig,
          config: oxlint,
@@ -104,7 +105,13 @@ test('packed exports and generated configuration load in the consumer runtime', 
   const result = JSON.parse(consumer.stdout);
 
   expect(result.exportIdentities).toEqual([true, true, true, true]);
-  expect(result.pluginNames).toEqual(['kamaal-imports', 'kamaal-ternary', 'kamaal-zod', 'kamaal-loops']);
+  expect(result.pluginNames).toEqual([
+    'kamaal-imports',
+    'kamaal-ternary',
+    'kamaal-zod',
+    'kamaal-loops',
+    'kamaal-arrows',
+  ]);
   expect(result.style).toEqual({ printWidth: 120, arrowParens: 'avoid', singleQuote: true });
   expect(result.generatedConfig).toEqual(result.config);
   expect(result.swiftExportIdentities).toEqual([true, true]);
@@ -129,6 +136,25 @@ describe.each(['.oxlintrc.json', 'oxlint.config.ts'])('packed %s configuration',
   });
 
   test.each([
+    ['concise-arrow.js', 'export const answer = () => 42;'],
+    ['object-arrow.js', 'export const user = () => ({\n  name: "Kamaal",\n});'],
+  ])('accepts %s', async (filename, source) => {
+    await fs.writeFile(path.join(workspace, filename), source);
+
+    const lint = childProcess.spawnSync(
+      consumerNode,
+      ['node_modules/oxlint/bin/oxlint', '-c', configuration, filename],
+      { cwd: workspace, encoding: 'utf8', timeout: 30_000 },
+    );
+
+    expect(lint.error).toBeUndefined();
+    expect(lint.stderr).toBe('');
+    expect(lint.status).toBe(0);
+    expect(lint.stdout).toContain('Found 0 warnings and 0 errors.');
+  });
+
+  test.each([
+    ['arrows.js', 'export const answer = () =>\n  42;', 'kamaal-arrows(require-multiline-arrow-braces)'],
     ['nullish.js', 'export const schema = z.string().nullable().optional();', 'kamaal-zod(prefer-nullish)'],
     [
       'spacing.js',
