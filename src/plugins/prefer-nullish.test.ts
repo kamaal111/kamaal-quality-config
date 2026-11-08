@@ -10,7 +10,7 @@ test.each([
   'builder.nullable().optional()',
 ])('rejects %s without an automatic fix', async expression => {
   const source = `export const schema = ${expression};\n`;
-  const result = await lintWithRule({ plugin: 'prefer-nullish.ts', ruleId: RULE_ID, source });
+  const result = await lintWithRule({ plugin: 'zod.ts', ruleId: RULE_ID, source });
 
   expect(result.isReported).toBe(true);
   expect(result.fixedSource).toBe(source);
@@ -26,7 +26,7 @@ test.each([
   'schema.nullable()["optional"]()',
 ])('accepts %s', async expression => {
   const result = await lintWithRule({
-    plugin: 'prefer-nullish.ts',
+    plugin: 'zod.ts',
     ruleId: RULE_ID,
     source: `export const schema = ${expression};\n`,
   });

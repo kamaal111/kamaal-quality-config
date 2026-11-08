@@ -1,66 +1,44 @@
-import type { AstNode, RuleContext } from './rule-context.ts';
+import type { ESTree, Rule } from '@oxlint/plugins';
 
-interface IdentifierNode extends AstNode {
-  type: 'Identifier';
-  name: string;
+function isNamedMember(
+  node: ESTree.Node,
+): node is ESTree.MemberExpression & { property: Extract<ESTree.Node, { type: 'Identifier' }> } {
+  return node.type === 'MemberExpression' && !node.computed && node.property.type === 'Identifier';
 }
 
-interface MemberExpressionNode extends AstNode {
-  type: 'MemberExpression';
-  computed: boolean;
-  object: ExpressionNode;
-  property: ExpressionNode;
+function isCall(node: ESTree.Node): node is ESTree.CallExpression {
+  return node.type === 'CallExpression';
 }
 
-interface CallExpressionNode extends AstNode {
-  type: 'CallExpression';
-  callee: ExpressionNode;
-}
+const preferNullish: Rule = {
+  meta: { type: 'suggestion' },
+  create(context) {
+    return {
+      CallExpression(node) {
+        const outer = node.callee;
 
-type ExpressionNode = IdentifierNode | MemberExpressionNode | CallExpressionNode | AstNode;
+        if (!isNamedMember(outer) || !isCall(outer.object)) {
+          return;
+        }
 
-function isNamedMember(node: ExpressionNode): node is MemberExpressionNode & { property: IdentifierNode } {
-  return (
-    node.type === 'MemberExpression' && 'computed' in node && !node.computed && node.property.type === 'Identifier'
-  );
-}
+        const inner = outer.object.callee;
 
-function isCall(node: ExpressionNode): node is CallExpressionNode {
-  return node.type === 'CallExpression' && 'callee' in node;
-}
+        if (!isNamedMember(inner)) {
+          return;
+        }
 
-export default {
-  meta: { name: 'kamaal-zod' },
-  rules: {
-    'prefer-nullish': {
-      meta: { type: 'suggestion' },
-      create(context: RuleContext) {
-        return {
-          CallExpression(node: CallExpressionNode) {
-            const outer = node.callee;
-
-            if (!isNamedMember(outer) || !isCall(outer.object)) {
-              return;
-            }
-
-            const inner = outer.object.callee;
-
-            if (!isNamedMember(inner)) {
-              return;
-            }
-
-            if (
-              (outer.property.name === 'optional' && inner.property.name === 'nullable') ||
-              (outer.property.name === 'nullable' && inner.property.name === 'optional')
-            ) {
-              context.report({
-                node,
-                message: 'Use .nullish() instead of chaining .nullable() and .optional().',
-              });
-            }
-          },
-        };
+        if (
+          (outer.property.name === 'optional' && inner.property.name === 'nullable') ||
+          (outer.property.name === 'nullable' && inner.property.name === 'optional')
+        ) {
+          context.report({
+            node,
+            message: 'Use .nullish() instead of chaining .nullable() and .optional().',
+          });
+        }
       },
-    },
+    };
   },
 };
+
+export default preferNullish;
