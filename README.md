@@ -5,7 +5,7 @@ Kamaal Farah's shared quality configs for [oxlint and oxfmt](https://oxc.rs), Sw
 Currently enables every rule from [`@kamaal111/oxlint-plugin-anti-slop`](https://github.com/kamaal111/anti-slop),
 Kamaal's fork of [`dmmulroy/anti-slop`](https://github.com/dmmulroy/anti-slop), plus a curated set of
 rules from oxlint's built-in `typescript`, `unicorn`, `oxc`, and `vitest` plugins and from
-`eslint-plugin-import` (via oxlint's `jsPlugins`), plus selected rules from `@stylistic/eslint-plugin` and five hand-written local rules:
+`eslint-plugin-import` (via oxlint's `jsPlugins`), plus selected rules from `@stylistic/eslint-plugin` and six hand-written local rules:
 
 - `kamaal-imports/no-all-inline-type-imports` — forbids `import { type A, type B } from 'x'` in favor
   of a top-level `import type { A, B } from 'x'`.
@@ -14,11 +14,18 @@ rules from oxlint's built-in `typescript`, `unicorn`, `oxc`, and `vitest` plugin
   (`x != null ? x.trim() : undefined`).
 - `kamaal-arrows/require-multiline-arrow-braces` — requires braces for multiline expression bodies,
   except direct object-literal returns.
+- `kamaal-zod/prefer-nonempty` — requires `.nonempty()` instead of `.min(1)` on verified
+  inline Zod 4 string, array, and set schemas, with autofix preserving custom errors and comments.
+  Supports imports and aliases from `zod` and `zod/v4`; the root import is assumed to be Zod 4.
+  Numeric schemas, schema variables, unsupported intermediate methods, and explicit Zod 3/Mini/Core
+  imports are left unchanged. Known chains such as `z.string().trim().min(1)` are supported.
 - `kamaal-zod/prefer-nullish` — requires `.nullish()` instead of consecutive `.nullable()` and
   `.optional()` calls in either order. This syntax-based rule applies to any receiver and has no autofix.
 - `kamaal-loops/prefer-while-true` — requires `while (true)` instead of `for (;;)` when all three
   header parts are empty. Autofix replaces comment-free headers; headers containing comments are
   reported without a fix. Other `for` loops are unchanged.
+
+The Zod plugin is exported at `@kamaal111/kamaal-quality-config/plugins/zod`.
 
 The shared defaults also require blank lines around class methods and constructors (with autofix),
 allow consecutive fields to stay grouped, require default imports for `node:` modules, and prohibit

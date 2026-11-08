@@ -75,7 +75,7 @@ test('packed exports and generated configuration load in the consumer runtime', 
 
        const { default: loopsPlugin } = await import('@kamaal111/kamaal-quality-config/plugins/prefer-while-true');
 
-       const { default: nullishPlugin } = await import('@kamaal111/kamaal-quality-config/plugins/prefer-nullish');
+       const { default: zodPlugin } = await import('@kamaal111/kamaal-quality-config/plugins/zod');
 
        const entrypoint = import.meta.resolve('@kamaal111/kamaal-quality-config');
        const generatedConfig = JSON.parse(await fs.readFile(new URL('./oxlintrc.json', entrypoint), 'utf8'));
@@ -88,7 +88,7 @@ test('packed exports and generated configuration load in the consumer runtime', 
          swiftConfig: swiftFormat,
          swiftJSON,
          installedSwiftConfig,
-         pluginNames: [importsPlugin.meta.name, ternaryPlugin.meta.name, nullishPlugin.meta.name, loopsPlugin.meta.name, arrowsPlugin.meta.name],
+         pluginNames: [importsPlugin.meta.name, ternaryPlugin.meta.name, zodPlugin.meta.name, loopsPlugin.meta.name, arrowsPlugin.meta.name],
          style: oxfmt,
          generatedConfig,
          config: oxlint,
@@ -155,6 +155,7 @@ describe.each(['.oxlintrc.json', 'oxlint.config.ts'])('packed %s configuration',
 
   test.each([
     ['arrows.js', 'export const answer = () =>\n  42;', 'kamaal-arrows(require-multiline-arrow-braces)'],
+    ['nonempty.js', 'import { z } from "zod"; export const schema = z.string().min(1);', 'kamaal-zod(prefer-nonempty)'],
     ['nullish.js', 'export const schema = z.string().nullable().optional();', 'kamaal-zod(prefer-nullish)'],
     [
       'spacing.js',
@@ -218,6 +219,29 @@ describe.each(['.oxlintrc.json', 'oxlint.config.ts'])('packed %s configuration',
     expect(lint.stderr).toBe('');
     expect(lint.status).toBe(0);
     expect(JSON.parse(lint.stdout).diagnostics).toEqual([]);
+  });
+
+  test('fixes nonempty schemas and preserves numeric bounds', async () => {
+    const source =
+      'import { z } from "zod";\n\nexport const schema = z.string().min(1, "Required");\nexport const count = z.number().min(1);\n';
+
+    const file = path.join(workspace, 'nonempty-fix.js');
+    await fs.writeFile(file, source);
+
+    const lint = childProcess.spawnSync(
+      consumerNode,
+      ['node_modules/oxlint/bin/oxlint', '-c', configuration, '--fix', 'nonempty-fix.js'],
+      {
+        cwd: workspace,
+        encoding: 'utf8',
+        timeout: 30_000,
+      },
+    );
+
+    expect(lint.error).toBeUndefined();
+    expect(lint.stderr).toBe('');
+    expect(lint.status).toBe(0);
+    expect(await fs.readFile(file, 'utf8')).toBe(source.replace('.min(1, "Required")', '.nonempty("Required")'));
   });
 });
 

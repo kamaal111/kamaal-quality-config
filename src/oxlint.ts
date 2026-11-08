@@ -3,9 +3,9 @@ import { defineConfig } from 'oxlint';
 
 import consistentInlineTypeImportsPlugin from './plugins/consistent-inline-type-imports.ts';
 import noNullishCheckFirstTernaryPlugin from './plugins/no-nullish-check-first-ternary.ts';
-import preferNullishPlugin from './plugins/prefer-nullish.ts';
 import preferWhileTruePlugin from './plugins/prefer-while-true.ts';
 import requireMultilineArrowBracesPlugin from './plugins/require-multiline-arrow-braces.ts';
+import zodPlugin from './plugins/zod.ts';
 
 function pluginRules(namespace: string, ruleNames: string[]) {
   return Object.fromEntries(ruleNames.map(ruleName => [`${namespace}/${ruleName}`, 'error'] as const));
@@ -23,7 +23,7 @@ const noNullishCheckFirstTernaryRules = pluginRules(
   Object.keys(noNullishCheckFirstTernaryPlugin.rules),
 );
 
-const preferNullishRules = pluginRules(preferNullishPlugin.meta.name, Object.keys(preferNullishPlugin.rules));
+const zodRules = pluginRules(zodPlugin.meta.name, Object.keys(zodPlugin.rules));
 
 const preferWhileTrueRules = pluginRules(preferWhileTruePlugin.meta.name, Object.keys(preferWhileTruePlugin.rules));
 
@@ -45,8 +45,8 @@ export default defineConfig({
       specifier: '@kamaal111/kamaal-quality-config/plugins/prefer-while-true',
     },
     {
-      name: preferNullishPlugin.meta.name,
-      specifier: '@kamaal111/kamaal-quality-config/plugins/prefer-nullish',
+      name: zodPlugin.meta.name,
+      specifier: '@kamaal111/kamaal-quality-config/plugins/zod',
     },
     { name: 'anti-slop', specifier: '@kamaal111/kamaal-quality-config/plugins/anti-slop' },
     { name: 'import-js', specifier: '@kamaal111/kamaal-quality-config/plugins/import' },
@@ -63,7 +63,7 @@ export default defineConfig({
   categories: { correctness: 'error' },
   rules: {
     ...antiSlopRules,
-    ...preferNullishRules,
+    ...zodRules,
     ...preferWhileTrueRules,
     ...requireMultilineArrowBracesRules,
     '@stylistic/lines-between-class-members': [
