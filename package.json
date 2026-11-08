@@ -44,6 +44,7 @@
     "./plugins/consistent-inline-type-imports": "./dist/plugins/consistent-inline-type-imports.js",
     "./plugins/no-nullish-check-first-ternary": "./dist/plugins/no-nullish-check-first-ternary.js",
     "./plugins/prefer-nullish": "./dist/plugins/prefer-nullish.js",
+    "./plugins/prefer-while-true": "./dist/plugins/prefer-while-true.js",
     "./swift-format": {
       "types": "./dist/swift-format.d.ts",
       "default": "./dist/swift-format.js"

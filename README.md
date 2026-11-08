@@ -5,7 +5,7 @@ Kamaal Farah's shared quality configs for [oxlint and oxfmt](https://oxc.rs), Sw
 Currently enables every rule from [`@kamaal111/oxlint-plugin-anti-slop`](https://github.com/kamaal111/anti-slop),
 Kamaal's fork of [`dmmulroy/anti-slop`](https://github.com/dmmulroy/anti-slop), plus a curated set of
 rules from oxlint's built-in `typescript`, `unicorn`, `oxc`, and `vitest` plugins and from
-`eslint-plugin-import` (via oxlint's `jsPlugins`), plus selected rules from `@stylistic/eslint-plugin` and three hand-written local rules:
+`eslint-plugin-import` (via oxlint's `jsPlugins`), plus selected rules from `@stylistic/eslint-plugin` and four hand-written local rules:
 
 - `kamaal-imports/no-all-inline-type-imports` — forbids `import { type A, type B } from 'x'` in favor
   of a top-level `import type { A, B } from 'x'`.
@@ -14,6 +14,9 @@ rules from oxlint's built-in `typescript`, `unicorn`, `oxc`, and `vitest` plugin
   (`x != null ? x.trim() : undefined`).
 - `kamaal-zod/prefer-nullish` — requires `.nullish()` instead of consecutive `.nullable()` and
   `.optional()` calls in either order. This syntax-based rule applies to any receiver and has no autofix.
+- `kamaal-loops/prefer-while-true` — requires `while (true)` instead of `for (;;)` when all three
+  header parts are empty. Autofix replaces comment-free headers; headers containing comments are
+  reported without a fix. Other `for` loops are unchanged.
 
 The shared defaults also require blank lines around class methods and constructors (with autofix),
 allow consecutive fields to stay grouped, require default imports for `node:` modules, and prohibit

@@ -16,6 +16,10 @@ test('package exports stay in sync', async () => {
 
   const nullishPlugin = await import('@kamaal111/kamaal-quality-config/plugins/prefer-nullish');
 
+  const loopsPlugin = await import('@kamaal111/kamaal-quality-config/plugins/prefer-while-true');
+
+  expect(loopsPlugin.default.meta.name).toBe('kamaal-loops');
+  expect(oxlintrc.rules['kamaal-loops/prefer-while-true']).toBe('error');
   expect(nullishPlugin.default.meta.name).toBe('kamaal-zod');
   expect(oxlintrc.rules['kamaal-zod/prefer-nullish']).toBe('error');
   expect(oxlintrc.rules['@stylistic/lines-between-class-members'][0]).toBe('error');

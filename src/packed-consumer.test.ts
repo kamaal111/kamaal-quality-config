@@ -68,6 +68,8 @@ test('packed exports and generated configuration load in the consumer runtime', 
        import importsPlugin from '@kamaal111/kamaal-quality-config/plugins/consistent-inline-type-imports';
        import ternaryPlugin from '@kamaal111/kamaal-quality-config/plugins/no-nullish-check-first-ternary';
 
+       const { default: loopsPlugin } = await import('@kamaal111/kamaal-quality-config/plugins/prefer-while-true');
+
        const { default: nullishPlugin } = await import('@kamaal111/kamaal-quality-config/plugins/prefer-nullish');
 
        const entrypoint = import.meta.resolve('@kamaal111/kamaal-quality-config');
@@ -81,7 +83,7 @@ test('packed exports and generated configuration load in the consumer runtime', 
          swiftConfig: swiftFormat,
          swiftJSON,
          installedSwiftConfig,
-         pluginNames: [importsPlugin.meta.name, ternaryPlugin.meta.name, nullishPlugin.meta.name],
+         pluginNames: [importsPlugin.meta.name, ternaryPlugin.meta.name, nullishPlugin.meta.name, loopsPlugin.meta.name],
          style: oxfmt,
          generatedConfig,
          config: oxlint,
@@ -98,7 +100,7 @@ test('packed exports and generated configuration load in the consumer runtime', 
   const result = JSON.parse(consumer.stdout);
 
   expect(result.exportIdentities).toEqual([true, true, true, true]);
-  expect(result.pluginNames).toEqual(['kamaal-imports', 'kamaal-ternary', 'kamaal-zod']);
+  expect(result.pluginNames).toEqual(['kamaal-imports', 'kamaal-ternary', 'kamaal-zod', 'kamaal-loops']);
   expect(result.style).toEqual({ printWidth: 120, arrowParens: 'avoid', singleQuote: true });
   expect(result.generatedConfig).toEqual(result.config);
   expect(result.swiftExportIdentities).toEqual([true, true]);
@@ -129,6 +131,7 @@ test.each([
     '@stylistic(lines-between-class-members)',
   ],
   ['imports.js', "import { readFile } from 'node:fs/promises';\nexport { readFile };", 'eslint(no-restricted-imports)'],
+  ['loop.js', 'export function work() { for (;;) { break; } }', 'kamaal-loops(prefer-while-true)'],
   ['assign.js', 'export const result = Object.assign({}, { value: 1 });', 'eslint(no-restricted-properties)'],
 ])('packed JSON config rejects %s', async (filename, source, diagnostic) => {
   await fs.writeFile(path.join(workspace, filename), source);
@@ -143,6 +146,35 @@ test.each([
   expect(lint.stderr).toBe('');
   expect(lint.status).toBe(1);
   expect(lint.stdout).toContain(diagnostic);
+});
+
+test('packed JSON config fixes infinite for loops and accepts the resulting while loop', async () => {
+  const filename = 'fixed-loop.js';
+  await fs.writeFile(path.join(workspace, filename), 'export function work() { for (;;) { break; } }\n');
+
+  const fix = childProcess.spawnSync(consumerNode, ['node_modules/oxlint/bin/oxlint', '--fix', filename], {
+    cwd: workspace,
+    encoding: 'utf8',
+    timeout: 30_000,
+  });
+
+  expect(fix.error).toBeUndefined();
+  expect(fix.stderr).toBe('');
+  expect(fix.status).toBe(0);
+  expect(await fs.readFile(path.join(workspace, filename), 'utf8')).toBe(
+    'export function work() { while (true) { break; } }\n',
+  );
+
+  const lint = childProcess.spawnSync(consumerNode, ['node_modules/oxlint/bin/oxlint', '--format', 'json', filename], {
+    cwd: workspace,
+    encoding: 'utf8',
+    timeout: 30_000,
+  });
+
+  expect(lint.error).toBeUndefined();
+  expect(lint.stderr).toBe('');
+  expect(lint.status).toBe(0);
+  expect(JSON.parse(lint.stdout).diagnostics).toEqual([]);
 });
 
 describe.skipIf(process.env.SWIFT_FORMAT_TEST !== '1')('packed Swift format configuration', () => {
