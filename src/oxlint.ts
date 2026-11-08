@@ -2,6 +2,7 @@ import antiSlopPlugin from '@kamaal111/oxlint-plugin-anti-slop';
 import { defineConfig } from 'oxlint';
 
 import consistentInlineTypeImportsPlugin from './plugins/consistent-inline-type-imports.ts';
+import noNestedTryPlugin from './plugins/no-nested-try.ts';
 import noNullishCheckFirstTernaryPlugin from './plugins/no-nullish-check-first-ternary.ts';
 import preferWhileTruePlugin from './plugins/prefer-while-true.ts';
 import requireMultilineArrowBracesPlugin from './plugins/require-multiline-arrow-braces.ts';
@@ -23,6 +24,8 @@ const noNullishCheckFirstTernaryRules = pluginRules(
   Object.keys(noNullishCheckFirstTernaryPlugin.rules),
 );
 
+const noNestedTryRules = pluginRules(noNestedTryPlugin.meta.name, Object.keys(noNestedTryPlugin.rules));
+
 const zodRules = pluginRules(zodPlugin.meta.name, Object.keys(zodPlugin.rules));
 
 const preferWhileTrueRules = pluginRules(preferWhileTruePlugin.meta.name, Object.keys(preferWhileTruePlugin.rules));
@@ -35,6 +38,10 @@ const requireMultilineArrowBracesRules = pluginRules(
 export default defineConfig({
   plugins: ['typescript', 'unicorn', 'oxc', 'vitest'],
   jsPlugins: [
+    {
+      name: noNestedTryPlugin.meta.name,
+      specifier: '@kamaal111/kamaal-quality-config/plugins/no-nested-try',
+    },
     { name: '@stylistic', specifier: '@kamaal111/kamaal-quality-config/plugins/stylistic' },
     {
       name: requireMultilineArrowBracesPlugin.meta.name,
@@ -63,6 +70,7 @@ export default defineConfig({
   categories: { correctness: 'error' },
   rules: {
     ...antiSlopRules,
+    ...noNestedTryRules,
     ...zodRules,
     ...preferWhileTrueRules,
     ...requireMultilineArrowBracesRules,
