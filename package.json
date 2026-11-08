@@ -49,7 +49,10 @@
       "types": "./dist/swift-format.d.ts",
       "default": "./dist/swift-format.js"
     },
-    "./swift-format.json": "./swift-format.json"
+    "./swift-format.json": "./swift-format.json",
+    "./plugins/anti-slop": "./dist/plugins/anti-slop.js",
+    "./plugins/stylistic": "./dist/plugins/stylistic.js",
+    "./plugins/import": "./dist/plugins/import.js"
   },
   "publishConfig": {
     "access": "public"

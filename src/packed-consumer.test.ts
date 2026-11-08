@@ -31,7 +31,6 @@ beforeAll(async () => {
       private: true,
       type: 'module',
       dependencies: {
-        ...packageJSON.dependencies,
         [packageJSON.name]: `file:${tarball}`,
         oxlint: packageJSON.devDependencies.oxlint,
         'oxlint-tsgolint': packageJSON.devDependencies['oxlint-tsgolint'],
@@ -48,6 +47,11 @@ beforeAll(async () => {
   await fs.writeFile(
     path.join(workspace, '.oxlintrc.json'),
     JSON.stringify({ extends: [`node_modules/${packageJSON.name}/dist/oxlintrc.json`] }),
+  );
+
+  await fs.writeFile(
+    path.join(workspace, 'oxlint.config.ts'),
+    "import config from '@kamaal111/kamaal-quality-config/oxlint';\nexport default config;\n",
   );
 
   await fs.writeFile(path.join(workspace, 'clean.js'), 'export const answer = 42;\n');
@@ -110,71 +114,85 @@ test('packed exports and generated configuration load in the consumer runtime', 
   expect(result.engine).toBe('>=22.12.0');
 });
 
-test('packed JSON configuration loads its plugins in a consumer project', () => {
-  const lint = childProcess.spawnSync(consumerNode, ['node_modules/oxlint/bin/oxlint', 'clean.js'], {
-    cwd: workspace,
-    encoding: 'utf8',
-    timeout: 30_000,
+describe.each(['.oxlintrc.json', 'oxlint.config.ts'])('packed %s configuration', configuration => {
+  test('loads plugins without direct consumer plugin dependencies', () => {
+    const lint = childProcess.spawnSync(
+      consumerNode,
+      ['node_modules/oxlint/bin/oxlint', '-c', configuration, 'clean.js'],
+      { cwd: workspace, encoding: 'utf8', timeout: 30_000 },
+    );
+
+    expect(lint.error).toBeUndefined();
+    expect(lint.stderr).toBe('');
+    expect(lint.status).toBe(0);
+    expect(lint.stdout).toContain('Found 0 warnings and 0 errors.');
   });
 
-  expect(lint.error).toBeUndefined();
-  expect(lint.stderr).toBe('');
-  expect(lint.status).toBe(0);
-  expect(lint.stdout).toContain('Found 0 warnings and 0 errors.');
-});
+  test.each([
+    ['nullish.js', 'export const schema = z.string().nullable().optional();', 'kamaal-zod(prefer-nullish)'],
+    [
+      'spacing.js',
+      'export class Example { value = 1; read() { return this.value; } }',
+      '@stylistic(lines-between-class-members)',
+    ],
+    [
+      'imports.js',
+      "import { readFile } from 'node:fs/promises';\nexport { readFile };",
+      'eslint(no-restricted-imports)',
+    ],
+    ['loop.js', 'export function work() { for (;;) { break; } }', 'kamaal-loops(prefer-while-true)'],
+    ['assign.js', 'export const result = Object.assign({}, { value: 1 });', 'eslint(no-restricted-properties)'],
+  ])('rejects %s', async (filename, source, diagnostic) => {
+    await fs.writeFile(path.join(workspace, filename), source);
 
-test.each([
-  ['nullish.js', 'export const schema = z.string().nullable().optional();', 'kamaal-zod(prefer-nullish)'],
-  [
-    'spacing.js',
-    'export class Example { value = 1; read() { return this.value; } }',
-    '@stylistic(lines-between-class-members)',
-  ],
-  ['imports.js', "import { readFile } from 'node:fs/promises';\nexport { readFile };", 'eslint(no-restricted-imports)'],
-  ['loop.js', 'export function work() { for (;;) { break; } }', 'kamaal-loops(prefer-while-true)'],
-  ['assign.js', 'export const result = Object.assign({}, { value: 1 });', 'eslint(no-restricted-properties)'],
-])('packed JSON config rejects %s', async (filename, source, diagnostic) => {
-  await fs.writeFile(path.join(workspace, filename), source);
+    const lint = childProcess.spawnSync(
+      consumerNode,
+      ['node_modules/oxlint/bin/oxlint', '-c', configuration, '--format', 'json', filename],
+      { cwd: workspace, encoding: 'utf8', timeout: 30_000 },
+    );
 
-  const lint = childProcess.spawnSync(consumerNode, ['node_modules/oxlint/bin/oxlint', '--format', 'json', filename], {
-    cwd: workspace,
-    encoding: 'utf8',
-    timeout: 30_000,
+    expect(lint.error).toBeUndefined();
+    expect(lint.stderr).toBe('');
+    expect(lint.status).toBe(1);
+    expect(lint.stdout).toContain(diagnostic);
   });
 
-  expect(lint.error).toBeUndefined();
-  expect(lint.stderr).toBe('');
-  expect(lint.status).toBe(1);
-  expect(lint.stdout).toContain(diagnostic);
-});
+  test('fixes infinite for loops and accepts the resulting while loop', async () => {
+    const filename = 'fixed-loop.js';
+    await fs.writeFile(path.join(workspace, filename), 'export function work() { for (;;) { break; } }\n');
 
-test('packed JSON config fixes infinite for loops and accepts the resulting while loop', async () => {
-  const filename = 'fixed-loop.js';
-  await fs.writeFile(path.join(workspace, filename), 'export function work() { for (;;) { break; } }\n');
+    const fix = childProcess.spawnSync(
+      consumerNode,
+      ['node_modules/oxlint/bin/oxlint', '-c', configuration, '--fix', filename],
+      {
+        cwd: workspace,
+        encoding: 'utf8',
+        timeout: 30_000,
+      },
+    );
 
-  const fix = childProcess.spawnSync(consumerNode, ['node_modules/oxlint/bin/oxlint', '--fix', filename], {
-    cwd: workspace,
-    encoding: 'utf8',
-    timeout: 30_000,
+    expect(fix.error).toBeUndefined();
+    expect(fix.stderr).toBe('');
+    expect(fix.status).toBe(0);
+    expect(await fs.readFile(path.join(workspace, filename), 'utf8')).toBe(
+      'export function work() { while (true) { break; } }\n',
+    );
+
+    const lint = childProcess.spawnSync(
+      consumerNode,
+      ['node_modules/oxlint/bin/oxlint', '-c', configuration, '--format', 'json', filename],
+      {
+        cwd: workspace,
+        encoding: 'utf8',
+        timeout: 30_000,
+      },
+    );
+
+    expect(lint.error).toBeUndefined();
+    expect(lint.stderr).toBe('');
+    expect(lint.status).toBe(0);
+    expect(JSON.parse(lint.stdout).diagnostics).toEqual([]);
   });
-
-  expect(fix.error).toBeUndefined();
-  expect(fix.stderr).toBe('');
-  expect(fix.status).toBe(0);
-  expect(await fs.readFile(path.join(workspace, filename), 'utf8')).toBe(
-    'export function work() { while (true) { break; } }\n',
-  );
-
-  const lint = childProcess.spawnSync(consumerNode, ['node_modules/oxlint/bin/oxlint', '--format', 'json', filename], {
-    cwd: workspace,
-    encoding: 'utf8',
-    timeout: 30_000,
-  });
-
-  expect(lint.error).toBeUndefined();
-  expect(lint.stderr).toBe('');
-  expect(lint.status).toBe(0);
-  expect(JSON.parse(lint.stdout).diagnostics).toEqual([]);
 });
 
 describe.skipIf(process.env.SWIFT_FORMAT_TEST !== '1')('packed Swift format configuration', () => {

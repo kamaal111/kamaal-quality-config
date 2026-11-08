@@ -56,6 +56,21 @@ Extend it from your `.oxlintrc.json`:
 }
 ```
 
+The shared config owns its external JavaScript plugins, including
+`@stylistic/eslint-plugin`, `eslint-plugin-import`, and
+`@kamaal111/oxlint-plugin-anti-slop`. Consumers do not need to declare those plugins
+directly or repeat their rule settings. Install `oxlint` and `oxlint-tsgolint`
+as development tools if your project does not already provide them:
+
+```sh
+pnpm add -D oxlint oxlint-tsgolint
+```
+
+Plugin entry points are exported by this package so both JSON and TypeScript
+configs resolve plugins through the shared package's own dependencies. This
+resolution fix requires a release after v0.8.0; v0.8.0 and earlier can require
+plugins to be exposed at the consumer root under isolated dependency layouts.
+
 The package ships a plain, statically-generated `dist/oxlintrc.json` — no `oxlint.config.ts` or
 package-import support is needed, since `.oxlintrc.json`'s `extends` field accepts plain file paths.
 
@@ -252,8 +267,9 @@ pnpm test
 Vitest also checks the packed package. To select a consumer runtime, run
 `CONSUMER_NODE=/absolute/path/to/node pnpm test src/packed-consumer.test.ts` inside the devcontainer.
 CI selects the latest Node.js 22 release while building and running Vitest on Node.js 26.
-The test fixture installs the JS plugins at the consumer project root, where oxlint resolves
-the plugin specifiers in the shared configuration.
+The fixture installs only the packed shared package and Oxlint tooling. It checks
+both JSON and TypeScript configs without declaring external plugin dependencies
+at the consumer root, so package-owned plugin resolution stays covered.
 
 The dependency-free example package in `fixtures/swift-format` verifies the installed Swift config.
 CI's Swift consumer job supplies Swift 6.4.1 and runs `pnpm test:swift-format`: it builds the package,

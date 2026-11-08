@@ -9,5 +9,5 @@
     "rootDir": "src",
     "rewriteRelativeImportExtensions": true
   },
-  "exclude": ["src/**/*.test.ts", "src/plugins/**"]
+  "exclude": ["src/**/*.test.ts", "src/plugins/test-utils/**"]
 }
