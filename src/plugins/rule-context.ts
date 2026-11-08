@@ -4,6 +4,7 @@ export interface AstNode {
 
 interface RuleFixer {
   replaceText(node: AstNode, text: string): AstNode;
+  replaceTextRange(range: [number, number], text: string): AstNode;
 }
 
 interface SourceCode {

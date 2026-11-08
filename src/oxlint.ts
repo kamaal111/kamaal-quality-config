@@ -4,6 +4,7 @@ import { defineConfig } from 'oxlint';
 import consistentInlineTypeImportsPlugin from './plugins/consistent-inline-type-imports.ts';
 import noNullishCheckFirstTernaryPlugin from './plugins/no-nullish-check-first-ternary.ts';
 import preferNullishPlugin from './plugins/prefer-nullish.ts';
+import preferWhileTruePlugin from './plugins/prefer-while-true.ts';
 
 function pluginRules(namespace: string, ruleNames: string[]) {
   return Object.fromEntries(ruleNames.map(ruleName => [`${namespace}/${ruleName}`, 'error'] as const));
@@ -23,10 +24,16 @@ const noNullishCheckFirstTernaryRules = pluginRules(
 
 const preferNullishRules = pluginRules(preferNullishPlugin.meta.name, Object.keys(preferNullishPlugin.rules));
 
+const preferWhileTrueRules = pluginRules(preferWhileTruePlugin.meta.name, Object.keys(preferWhileTruePlugin.rules));
+
 export default defineConfig({
   plugins: ['typescript', 'unicorn', 'oxc', 'vitest'],
   jsPlugins: [
     '@stylistic/eslint-plugin',
+    {
+      name: preferWhileTruePlugin.meta.name,
+      specifier: '@kamaal111/kamaal-quality-config/plugins/prefer-while-true',
+    },
     {
       name: preferNullishPlugin.meta.name,
       specifier: '@kamaal111/kamaal-quality-config/plugins/prefer-nullish',
@@ -47,6 +54,7 @@ export default defineConfig({
   rules: {
     ...antiSlopRules,
     ...preferNullishRules,
+    ...preferWhileTrueRules,
     '@stylistic/lines-between-class-members': [
       'error',
       {
