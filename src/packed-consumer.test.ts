@@ -326,6 +326,17 @@ describe.skipIf(process.env.SWIFT_LINT_TEST !== '1')('packed Swift lint CLI', ()
       diagnostic: '[view_body_declarations]',
     },
     {
+      name: 'multiple tries in one do/catch',
+      source: 'do { try load(); try save() } catch { reportError(error) }',
+      diagnostic: 'Keep at most one plain try expression in each do/catch body.',
+    },
+    {
+      name: 'value-producing tries in one do/catch',
+      source: 'do { let result = try save(); try publish(result) } catch { reportError(error) }',
+      diagnostic:
+        'For a returned value, declare a typed let before do and assign it inside; the catch must exit, rethrow, or assign a fallback before the value is used afterward.',
+    },
+    {
       name: 'invalid syntax',
       source: 'struct Example {',
       diagnostic: 'Cannot lint Swift source because Swift syntax is invalid.',
@@ -341,6 +352,60 @@ describe.skipIf(process.env.SWIFT_LINT_TEST !== '1')('packed Swift lint CLI', ()
       expect(result.status).toBe(1);
       expect(result.stdout).toContain(diagnostic);
       expect(result.stdout).toContain(file + ':');
+      expect(await fs.readFile(file, 'utf8')).toBe(source);
+    },
+    60_000,
+  );
+
+  test('explains individual error handling for extra tries in the installed CLI', async () => {
+    const directory = await consumerDirectory();
+    const file = path.join(directory, 'Example.swift');
+    const source = 'do { try load(); try save() } catch { reportError(error) }';
+    await fs.writeFile(file, source);
+
+    const result = lint(directory, ['Example.swift']);
+
+    expect(result.error).toBeUndefined();
+    expect(result.status).toBe(1);
+    expect(result.stdout).toContain('[single_try_per_do_catch]');
+    expect(result.stdout).toContain(
+      'Give each throwing operation its own do/catch, or extract it into a helper that handles its error.',
+    );
+    expect(result.stdout).toContain(
+      'Choose error handling for each operation rather than combining calls under one try.',
+    );
+    expect(await fs.readFile(file, 'utf8')).toBe(source);
+  }, 60_000);
+
+  test.each([
+    {
+      name: 'independently handled operations',
+      source: `do { try load() } catch { reportLoad(error); return }
+do { try save() } catch { reportSave(error) }`,
+    },
+    {
+      name: 'typed declaration before a value-producing try',
+      source: `let result: SaveResult
+do {
+    result = try save()
+} catch {
+    reportError(error)
+    return
+}
+display(result)`,
+    },
+  ])(
+    'accepts $name without modifying source',
+    async ({ source }) => {
+      const directory = await consumerDirectory();
+      const file = path.join(directory, 'Example.swift');
+      await fs.writeFile(file, source);
+
+      const result = lint(directory, ['Example.swift']);
+
+      expect(result.error).toBeUndefined();
+      expect(result.status).toBe(0);
+      expect(result.stdout).toBe('');
       expect(await fs.readFile(file, 'utf8')).toBe(source);
     },
     60_000,
