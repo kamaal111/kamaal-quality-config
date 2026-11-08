@@ -14,7 +14,10 @@ enum SwiftLint {
         chains.walk(tree)
         let bodies = ViewBodyDeclarationVisitor(viewMode: .sourceAccurate)
         bodies.walk(tree)
-        return (visitor.violations + chains.violations + bodies.violations).sorted { $0.position < $1.position }
+        let tries = SingleTryPerDoCatchVisitor(viewMode: .sourceAccurate)
+        tries.walk(tree)
+        return (visitor.violations + chains.violations + bodies.violations + tries.violations)
+            .sorted { $0.position < $1.position }
             .map { violation in
                 let location = converter.location(for: violation.position)
                 return

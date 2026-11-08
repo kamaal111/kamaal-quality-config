@@ -158,12 +158,73 @@ Without paths, the command checks the current directory recursively. Explicit fi
 paths are relative to your working directory. Recursive scanning skips hidden paths (including
 `.build`), `node_modules`, symlinks, and non-Swift files. Use `--` before paths starting with a dash.
 
-All three checks are enabled:
+All four checks are enabled:
 
 - `member_spacing`: separate methods and initializers from adjacent members with a blank line.
 - `multiline_chain_spacing`: put each chained call on its own line in multiline expressions.
 - `view_body_declarations`: move local `let` and `var` declarations out of SwiftUI
   `var body: some View`, including nested builder closures. Conditional bindings remain allowed.
+- `single_try_per_do_catch`: allow at most one plain `try` expression per `do/catch` body.
+  Count across branches and loops; `try?` and `try!` do not count. Nested `do/catch` bodies
+  are checked independently, while catchless `do` blocks contribute to the enclosing count.
+  Closures, local functions, and nested types have separate scopes; their own `do/catch` blocks
+  are still checked. A `try` in a nested catch contributes to an enclosing handler, if present.
+  All conditional-compilation branches count, including inactive branches.
+
+For example, this shares error handling between two throwing operations and is rejected at the second `try`:
+
+```swift
+do {
+    try load()
+    try save()
+} catch {
+    reportError(error)
+}
+```
+
+Give each operation its own error handling, or extract a helper that handles its error. Decide whether
+each failure should recover, propagate, or gain more context. For operations without a returned value:
+
+```swift
+do {
+    try load()
+} catch {
+    reportLoad(error)
+    return
+}
+
+do {
+    try save()
+} catch {
+    reportSave(error)
+}
+```
+
+Here the early return prevents saving after loading fails. Choose continuation based on the operation.
+
+For an operation that returns a value, declare a typed `let` before the `do` and assign it inside:
+
+```swift
+let result: SaveResult
+do {
+    result = try save()
+} catch {
+    reportError(error)
+    return
+}
+
+display(result)
+```
+
+If the value is used afterward, the catch must exit, rethrow the error, or assign a meaningful fallback
+so the value is initialized on every continuing path. Reporting the error alone is sufficient only
+when no subsequent path reads the uninitialized value. `SaveResult` is the operation's return type;
+it is not Swift's generic `Result<Success, Failure>`.
+
+Diagnostics explain these alternatives. The rule has no autofix because choosing error handling
+requires judgment. It counts explicit plain `try` expressions rather than throwing calls: one
+`try` covering multiple calls counts as one, but combining calls merely to silence the rule
+defeats its purpose.
 
 The CLI runs `swift run --package-path` against the bundled `SwiftLintChecks` package and does not
 modify source files. Diagnostics include file, line, column, and rule identifier. Exit codes are
