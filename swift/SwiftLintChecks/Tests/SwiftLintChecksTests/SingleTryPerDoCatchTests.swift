@@ -42,12 +42,6 @@ struct SingleTryPerDoCatchTests {
         "do { try load(); try save() }",
         "do { try load() } catch { try save(); try refresh() }",
         """
-        do {
-            try load()
-            do { try save() } catch { reportSave(error) }
-        } catch { reportLoad(error) }
-        """,
-        """
         do { try load() } catch { reportLoad(error); return }
         do { try save() } catch { reportSave(error) }
         """,
@@ -175,6 +169,7 @@ struct SingleTryPerDoCatchTests {
             """
         #expect(
             SwiftLint.diagnostics(source: source, path: "Example.swift") == [
+                "Example.swift:3:5: error: Avoid nested do/catch statements. Extract error handling into a helper or use sequential do/catch blocks. [no_nested_do_catch]",
                 "Example.swift:5:9: error: \(Self.message) [single_try_per_do_catch]",
                 "Example.swift:9:5: error: \(Self.message) [single_try_per_do_catch]",
             ]
@@ -197,7 +192,8 @@ struct SingleTryPerDoCatchTests {
             """
         #expect(
             SwiftLint.diagnostics(source: source, path: "Example.swift") == [
-                "Example.swift:6:9: error: \(Self.message) [single_try_per_do_catch]"
+                "Example.swift:3:5: error: Avoid nested do/catch statements. Extract error handling into a helper or use sequential do/catch blocks. [no_nested_do_catch]",
+                "Example.swift:6:9: error: \(Self.message) [single_try_per_do_catch]",
             ]
         )
     }

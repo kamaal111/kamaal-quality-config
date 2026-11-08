@@ -30,6 +30,7 @@ interface LintWithConfigInput {
 
 interface LintWithRuleResult {
   isReported: boolean;
+  reportOutput: string;
   fixedSource: string;
 }
 
@@ -84,7 +85,7 @@ export async function lintWithConfig({
     childProcess.spawnSync(OXLINT_BIN, ['-c', configPath, '--fix', fixturePath], { encoding: 'utf8' });
     const fixedSource = await fs.readFile(fixturePath, 'utf8');
 
-    return { isReported, fixedSource };
+    return { isReported, reportOutput: reportRun.stdout, fixedSource };
   } finally {
     await fs.rm(workspace, { recursive: true, force: true });
   }

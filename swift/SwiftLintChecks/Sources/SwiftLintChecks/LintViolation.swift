@@ -8,6 +8,7 @@ struct LintViolation {
 enum LintRule: String {
     case memberSpacing = "member_spacing"
     case multilineChainSpacing = "multiline_chain_spacing"
+    case noNestedDoCatch = "no_nested_do_catch"
     case singleTryPerDoCatch = "single_try_per_do_catch"
     case viewBodyDeclarations = "view_body_declarations"
 
@@ -17,6 +18,8 @@ enum LintRule: String {
             "Separate initializers and methods from adjacent members with a blank line."
         case .multilineChainSpacing:
             "Place each chained call on its own line in a multiline expression."
+        case .noNestedDoCatch:
+            "Avoid nested do/catch statements. Extract error handling into a helper or use sequential do/catch blocks."
         case .singleTryPerDoCatch:
             """
             Keep at most one plain try expression in each do/catch body. \

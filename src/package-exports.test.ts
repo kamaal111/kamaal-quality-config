@@ -16,6 +16,12 @@ test('package exports stay in sync', async () => {
 
   const zodPlugin = await import('@kamaal111/kamaal-quality-config/plugins/zod');
 
+  const errorsPlugin = await import('@kamaal111/kamaal-quality-config/plugins/no-nested-try');
+
+  expect(errorsPlugin.default.meta.name).toBe('kamaal-errors');
+  expect(errorsPlugin.default.rules).toHaveProperty('no-nested-try');
+  expect(oxlintrc.rules['kamaal-errors/no-nested-try']).toBe('error');
+
   const loopsPlugin = await import('@kamaal111/kamaal-quality-config/plugins/prefer-while-true');
 
   expect(loopsPlugin.default.meta.name).toBe('kamaal-loops');

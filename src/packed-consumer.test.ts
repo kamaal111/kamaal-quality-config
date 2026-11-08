@@ -71,6 +71,7 @@ test('packed exports and generated configuration load in the consumer runtime', 
        import swiftJSON from '@kamaal111/kamaal-quality-config/swift-format.json' with { type: 'json' };
        import importsPlugin from '@kamaal111/kamaal-quality-config/plugins/consistent-inline-type-imports';
        import ternaryPlugin from '@kamaal111/kamaal-quality-config/plugins/no-nullish-check-first-ternary';
+       import errorsPlugin from '@kamaal111/kamaal-quality-config/plugins/no-nested-try';
        import arrowsPlugin from '@kamaal111/kamaal-quality-config/plugins/require-multiline-arrow-braces';
 
        const { default: loopsPlugin } = await import('@kamaal111/kamaal-quality-config/plugins/prefer-while-true');
@@ -88,7 +89,7 @@ test('packed exports and generated configuration load in the consumer runtime', 
          swiftConfig: swiftFormat,
          swiftJSON,
          installedSwiftConfig,
-         pluginNames: [importsPlugin.meta.name, ternaryPlugin.meta.name, zodPlugin.meta.name, loopsPlugin.meta.name, arrowsPlugin.meta.name],
+         pluginNames: [importsPlugin.meta.name, ternaryPlugin.meta.name, zodPlugin.meta.name, loopsPlugin.meta.name, arrowsPlugin.meta.name, errorsPlugin.meta.name],
          style: oxfmt,
          generatedConfig,
          config: oxlint,
@@ -111,6 +112,7 @@ test('packed exports and generated configuration load in the consumer runtime', 
     'kamaal-zod',
     'kamaal-loops',
     'kamaal-arrows',
+    'kamaal-errors',
   ]);
   expect(result.style).toEqual({ printWidth: 120, arrowParens: 'avoid', singleQuote: true });
   expect(result.generatedConfig).toEqual(result.config);
@@ -168,6 +170,8 @@ describe.each(['.oxlintrc.json', 'oxlint.config.ts'])('packed %s configuration',
       'eslint(no-restricted-imports)',
     ],
     ['loop.js', 'export function work() { for (;;) { break; } }', 'kamaal-loops(prefer-while-true)'],
+    ['nested-try.js', 'try { try { load(); } catch {} } catch {}', 'kamaal-errors(no-nested-try)'],
+    ['nested-finally.ts', 'try { load(); } finally { try { cleanup(); } finally {} }', 'kamaal-errors(no-nested-try)'],
     ['assign.js', 'export const result = Object.assign({}, { value: 1 });', 'eslint(no-restricted-properties)'],
   ])('rejects %s', async (filename, source, diagnostic) => {
     await fs.writeFile(path.join(workspace, filename), source);
@@ -182,6 +186,32 @@ describe.each(['.oxlintrc.json', 'oxlint.config.ts'])('packed %s configuration',
     expect(lint.stderr).toBe('');
     expect(lint.status).toBe(1);
     expect(lint.stdout).toContain(diagnostic);
+  });
+
+  test('accepts independent error handling scopes', async () => {
+    const filename = 'independent-handlers.js';
+    await fs.writeFile(
+      path.join(workspace, filename),
+      `try { load(); } catch {}
+
+try {
+  function save() { try { write(); } catch {} }
+
+  save();
+} catch {}
+`,
+    );
+
+    const lint = childProcess.spawnSync(
+      consumerNode,
+      ['node_modules/oxlint/bin/oxlint', '-c', configuration, '--format', 'json', filename],
+      { cwd: workspace, encoding: 'utf8', timeout: 30_000 },
+    );
+
+    expect(lint.error).toBeUndefined();
+    expect(lint.stderr).toBe('');
+    expect(lint.status).toBe(0);
+    expect(JSON.parse(lint.stdout).diagnostics).toEqual([]);
   });
 
   test('fixes infinite for loops and accepts the resulting while loop', async () => {
@@ -437,6 +467,16 @@ describe.skipIf(process.env.SWIFT_LINT_TEST !== '1')('packed Swift lint CLI', ()
         'For a returned value, declare a typed let before do and assign it inside; the catch must exit, rethrow, or assign a fallback before the value is used afterward.',
     },
     {
+      name: 'nested do/catch',
+      source: 'do { do { try load() } catch {} } catch {}',
+      diagnostic: '[no_nested_do_catch]',
+    },
+    {
+      name: 'nested catch recovery',
+      source: 'do { try load() } catch { do { try recover() } catch {} }',
+      diagnostic: '[no_nested_do_catch]',
+    },
+    {
       name: 'invalid syntax',
       source: 'struct Example {',
       diagnostic: 'Cannot lint Swift source because Swift syntax is invalid.',
@@ -482,6 +522,10 @@ describe.skipIf(process.env.SWIFT_LINT_TEST !== '1')('packed Swift lint CLI', ()
       name: 'independently handled operations',
       source: `do { try load() } catch { reportLoad(error); return }
 do { try save() } catch { reportSave(error) }`,
+    },
+    {
+      name: 'handler within a fresh closure scope',
+      source: 'do { let work = { do { try load() } catch {} } } catch {}',
     },
     {
       name: 'typed declaration before a value-producing try',

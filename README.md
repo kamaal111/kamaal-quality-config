@@ -5,7 +5,7 @@ Kamaal Farah's shared quality configs for [oxlint and oxfmt](https://oxc.rs), Sw
 Currently enables every rule from [`@kamaal111/oxlint-plugin-anti-slop`](https://github.com/kamaal111/anti-slop),
 Kamaal's fork of [`dmmulroy/anti-slop`](https://github.com/dmmulroy/anti-slop), plus a curated set of
 rules from oxlint's built-in `typescript`, `unicorn`, `oxc`, and `vitest` plugins and from
-`eslint-plugin-import` (via oxlint's `jsPlugins`), plus selected rules from `@stylistic/eslint-plugin` and six hand-written local rules:
+`eslint-plugin-import` (via oxlint's `jsPlugins`), plus selected rules from `@stylistic/eslint-plugin` and seven hand-written local rules:
 
 - `kamaal-imports/no-all-inline-type-imports` — forbids `import { type A, type B } from 'x'` in favor
   of a top-level `import type { A, B } from 'x'`.
@@ -24,6 +24,13 @@ rules from oxlint's built-in `typescript`, `unicorn`, `oxc`, and `vitest` plugin
 - `kamaal-loops/prefer-while-true` — requires `while (true)` instead of `for (;;)` when all three
   header parts are empty. Autofix replaces comment-free headers; headers containing comments are
   reported without a fix. Other `for` loops are unchanged.
+- `kamaal-errors/no-nested-try` — rejects nested JavaScript and TypeScript `try` statements,
+  including handlers in `catch` and `finally` and `try/finally` without `catch`.
+  Functions, closures, and classes start independent scopes. Use sequential handlers or extract
+  error handling into a helper; the rule does not autofix.
+
+The error-handling plugin is exported at
+`@kamaal111/kamaal-quality-config/plugins/no-nested-try`.
 
 The Zod plugin is exported at `@kamaal111/kamaal-quality-config/plugins/zod`.
 
@@ -199,15 +206,20 @@ Without paths, the command checks the current directory recursively. Explicit fi
 paths are relative to your working directory. Recursive scanning skips hidden paths (including
 `.build`), `node_modules`, symlinks, and non-Swift files. Use `--` before paths starting with a dash.
 
-All four checks are enabled:
+All five checks are enabled:
 
 - `member_spacing`: separate methods and initializers from adjacent members with a blank line.
 - `multiline_chain_spacing`: put each chained call on its own line in multiline expressions.
 - `view_body_declarations`: move local `let` and `var` declarations out of SwiftUI
   `var body: some View`, including nested builder closures. Conditional bindings remain allowed.
+- `no_nested_do_catch`: reject a `do/catch` nested anywhere in another `do/catch`,
+  including its catch clauses. Plain `do` blocks do not count, but do not hide nesting.
+  Functions, closures, initializers, accessors, and nested types start independent scopes;
+  their own handlers are still checked. Use sequential handlers or extract a helper.
 - `single_try_per_do_catch`: allow at most one plain `try` expression per `do/catch` body.
-  Count across branches and loops; `try?` and `try!` do not count. Nested `do/catch` bodies
-  are checked independently, while catchless `do` blocks contribute to the enclosing count.
+  Count across branches and loops; `try?` and `try!` do not count. Each `do/catch` body
+  is counted independently, while catchless `do` blocks contribute to the enclosing count.
+  Nesting handlers is rejected separately by `no_nested_do_catch`.
   Closures, local functions, and nested types have separate scopes; their own `do/catch` blocks
   are still checked. A `try` in a nested catch contributes to an enclosing handler, if present.
   All conditional-compilation branches count, including inactive branches.
